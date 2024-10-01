@@ -8,10 +8,6 @@
 
 - [Características](#-características)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
-- [Instalação](#-instalação)
-- [Uso](#-uso)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
 
 ---
 
