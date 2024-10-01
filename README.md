@@ -8,6 +8,7 @@
 
 - [Características](#-características)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
+- [Instalação](#-instalação)
 
 ---
 
