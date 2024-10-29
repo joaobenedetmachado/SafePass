@@ -16,6 +16,23 @@ DBconexao = mysql.connector.connect(
 
 cursor = DBconexao.cursor()
 
+root = tk.Tk()
+root.title("Cadastro e Login")
+root.geometry("800x600") 
+
+notebook = ttk.Notebook(root)
+notebook.pack(pady=10, expand=True)
+print(notebook)
+
+aba_login = ttk.Frame(notebook)
+notebook.add(aba_login, text='Login')
+
+aba_senhas = ttk.Frame(notebook)
+
+
+aba_cadastro = ttk.Frame(notebook)
+notebook.add(aba_cadastro, text='Cadastro')
+
 def cadastrar():
     usuario = entry_usuario_cadastro.get()
     senha = entry_senha_cadastro.get()
@@ -36,35 +53,56 @@ def cadastrar():
         messagebox.showwarning("Cadastro", "Por favor, preencha todos os campos.")
 
 def logar():
-    usuario = entry_usuario_login.get()
+    usuario = entry_usuario_login.get() # pega o valor do user e senha
     senha = entry_senha_login.get()
     
     if usuario and senha:
-        comandoSQL = f"SELECT * FROM users WHERE nome = '{usuario}' AND password = '{senha}'"
+        comandoSQL = f"SELECT * FROM users WHERE nome = '{usuario}' AND password = '{senha}'" # faz e checagem
         cursor.execute(comandoSQL)
         resultado = cursor.fetchone()
         if resultado:
             messagebox.showinfo("Login", "Login realizado com sucesso!")
+            afterLogin(usuario)
         else:
-            messagebox.showerror("Login", "Nome de usuário ou senha incorretos.")
+            messagebox.showerror("Login", "Nome de usuário ou senha incorretos.") # caso de errado ele mostra
     else:
         messagebox.showwarning("Login", "Por favor, preencha todos os campos.")
 
-root = tk.Tk()
-root.title("Cadastro e Login")
-root.geometry("800x600") 
+def afterLogin(usuario): # ele tira as abas de login e cadastro
+  notebook.forget(aba_cadastro)
+  notebook.forget(aba_login)
+  aba_senhas = ttk.Frame(notebook) 
+  notebook.add(aba_senhas, text='Senhas')
+  text_area = tk.Text(aba_senhas, height=10, width=40)
+  text_area.pack(pady=20)
+  text_area.config(state='normal')  
 
-notebook = ttk.Notebook(root)
-notebook.pack(pady=10, expand=True)
+  comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
+  cursor.execute(comandoSQL)
+  resultado = cursor.fetchone()
 
-aba_cadastro = ttk.Frame(notebook)
-notebook.add(aba_cadastro, text='Cadastro')
+  if resultado:
+      iduser = resultado[0]
+      comandoSQL = f"SELECT passwordhash FROM passwords WHERE userid = {iduser}"
+      cursor.execute(comandoSQL)
+      resultadoSenhas = cursor.fetchall()
+      text_area.delete(1.0, tk.END)  
+      if resultadoSenhas: 
+          for senha in resultadoSenhas:
+              print(senha[0])  
+              text_area.insert(tk.END, f"{senha[0]}\n")  # inseri a senha no caixa
+      else:
+          text_area.insert(tk.END, "Nenhuma senha encontrada.")  # se nao tiver senha ele mostra dai ne
 
+  text_area.config(state='disabled')  # desabilita pra q o user nao mexa mais
+
+  
+
+# area do cadastro
 label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:")
-label_usuario_cadastro.pack(pady=(20, 5)) 
+label_usuario_cadastro.pack(pady=(20, 5))  
 entry_usuario_cadastro = tk.Entry(aba_cadastro)
 entry_usuario_cadastro.pack(pady=(0, 20))  
-
 label_senha_cadastro = tk.Label(aba_cadastro, text="Senha:")
 label_senha_cadastro.pack(pady=(20, 5))  
 entry_senha_cadastro = tk.Entry(aba_cadastro, show="*")
@@ -72,11 +110,8 @@ entry_senha_cadastro.pack(pady=(0, 20))
 
 button_cadastrar = tk.Button(aba_cadastro, text="Cadastrar", command=cadastrar)
 button_cadastrar.pack(pady=(20, 20))  
-# Criar a aba de login
-aba_login = ttk.Frame(notebook)
-notebook.add(aba_login, text='Login')
 
-# Campos de login
+# area de cadastro
 label_usuario_login = tk.Label(aba_login, text="Usuário:")
 label_usuario_login.pack(pady=(20, 5))  
 entry_usuario_login = tk.Entry(aba_login)
