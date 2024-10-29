@@ -95,27 +95,34 @@ def afterLogin(usuario): # ele tira as abas de login e cadastro
           text_area.insert(tk.END, "Nenhuma senha encontrada.")  # se nao tiver senha ele mostra dai ne
 
   text_area.config(state='disabled')
-  button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=cadastrarNovaSenha(usuario))
-  button_criarNovaSenha.pack(pady=(20, 20)) # desabilita pra q o user nao mexa mais
+  button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=cadastrarNovaSenhaArea(iduser))
+  button_criarNovaSenha.pack(pady=(20, 20))
+
+def cadastrarNovaSenhaArea(iduser):
+    janelaCriarSenha = tk.Toplevel(root)
+    janelaCriarSenha.title("Criar Senha")
+    janelaCriarSenha.geometry("300x300")
+    
+    label_senha = tk.Label(janelaCriarSenha, text="Senha:")
+    label_senha.pack(pady=(20, 5))  
+    entry_senha = tk.Entry(janelaCriarSenha)
+    entry_senha.pack(pady=(0, 20))  
+    
+    label_sitename = tk.Label(janelaCriarSenha, text="Site:")
+    label_sitename.pack(pady=(20, 5))  
+    entry_sitename = tk.Entry(janelaCriarSenha)
+    entry_sitename.pack(pady=(0, 20))  
+    button_criarNovaSenha = tk.Button(janelaCriarSenha, text="Cadastrar Nova Senha", command=lambda: CadastrarNovaSenha(janelaCriarSenha, iduser, entry_senha.get(), entry_sitename.get()))
+    button_criarNovaSenha.pack(pady=(20, 20))
+
+def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName):
+    comandoSQL = f'INSERT INTO passwords(userid, passwordhash, sitename) VALUES({iduser}, "{password}", "{siteName}")'
+    cursor.execute(comandoSQL)
+    DBconexao.commit()
+    print("Senha cadastrada")
+    janelaCriarSenha.destroy()
 
 
-def cadastrarNovaSenha(usuario):
-  janelaCriarSenha = tk.Toplevel(root)
-  janelaCriarSenha.title("Criar Senha")
-  janelaCriarSenha.geometry("300x300")
-  label_senha = tk.Label(janelaCriarSenha, text="Senha:")
-  label_senha.pack(pady=(20, 5))  
-  entry_senha = tk.Entry(janelaCriarSenha)
-  entry_senha.pack(pady=(0, 20))  
-  label_sitename = tk.Label(janelaCriarSenha, text="Site:")
-  label_sitename.pack(pady=(20, 5))  
-  entry_sitename = tk.Entry(janelaCriarSenha)
-  entry_sitename.pack(pady=(0, 20))  
-  password = entry_senha.get()
-  siteName = entry_sitename.get()
-  print(usuario)
-  
-  
 
 # area do cadastro
 label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:")
