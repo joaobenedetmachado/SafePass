@@ -25,7 +25,7 @@
 
 - **Python**: Linguagem de programação principal.
 - **MySQL**: Banco de dados para armazenar dados.
-- **Bcrypt**: Biblioteca para hashing de senhas.
+- **Fernet**: Biblioteca para hashing de senhas.
 - **Tkinter**: Biblioteca para interface gráfica.
 
 ---
