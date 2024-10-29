@@ -94,8 +94,27 @@ def afterLogin(usuario): # ele tira as abas de login e cadastro
       else:
           text_area.insert(tk.END, "Nenhuma senha encontrada.")  # se nao tiver senha ele mostra dai ne
 
-  text_area.config(state='disabled')  # desabilita pra q o user nao mexa mais
+  text_area.config(state='disabled')
+  button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=cadastrarNovaSenha(usuario))
+  button_criarNovaSenha.pack(pady=(20, 20)) # desabilita pra q o user nao mexa mais
 
+
+def cadastrarNovaSenha(usuario):
+  janelaCriarSenha = tk.Toplevel(root)
+  janelaCriarSenha.title("Criar Senha")
+  janelaCriarSenha.geometry("300x300")
+  label_senha = tk.Label(janelaCriarSenha, text="Senha:")
+  label_senha.pack(pady=(20, 5))  
+  entry_senha = tk.Entry(janelaCriarSenha)
+  entry_senha.pack(pady=(0, 20))  
+  label_sitename = tk.Label(janelaCriarSenha, text="Site:")
+  label_sitename.pack(pady=(20, 5))  
+  entry_sitename = tk.Entry(janelaCriarSenha)
+  entry_sitename.pack(pady=(0, 20))  
+  password = entry_senha.get()
+  siteName = entry_sitename.get()
+  print(usuario)
+  
   
 
 # area do cadastro
