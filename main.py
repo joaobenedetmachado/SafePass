@@ -1,12 +1,37 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import mysql.connector
+
+DB_HOST = "127.0.0.1"
+DB_USER = "root"
+DB_PASSWORD = ""
+DB_DATABASE = "vaultify"
+
+DBconexao = mysql.connector.connect(
+    host=DB_HOST,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    database=DB_DATABASE
+)
+
+cursor = DBconexao.cursor()
 
 def cadastrar():
     usuario = entry_usuario_cadastro.get()
     senha = entry_senha_cadastro.get()
     
     if usuario and senha:
-        messagebox.showinfo("Cadastro", "Cadastro realizado com sucesso!")
+        comandoSQL = "Select * from users"
+        cursor.execute(comandoSQL)
+        resultado = cursor.fetchall()
+        nome_existentes = [line[1] for line in resultado]
+        if usuario not in nome_existentes:
+          comandoSQL = f"Insert into users(nome, password) values('{usuario}', '{senha}')"
+          cursor.execute(comandoSQL)
+          DBconexao.commit()
+          messagebox.showwarning("Cadastro", "Pronto! usuario cadastrado!")
+        else:
+          messagebox.showwarning("Cadastro", "Este nome ja possui no banco de dados, coloque outro!")
     else:
         messagebox.showwarning("Cadastro", "Por favor, preencha todos os campos.")
 
@@ -14,10 +39,16 @@ def logar():
     usuario = entry_usuario_login.get()
     senha = entry_senha_login.get()
     
-    if usuario == "usuario_exemplo" and senha == "senha_exemplo": 
-        messagebox.showinfo("Login", "Login realizado com sucesso!")
+    if usuario and senha:
+        comandoSQL = f"SELECT * FROM users WHERE nome = '{usuario}' AND password = '{senha}'"
+        cursor.execute(comandoSQL)
+        resultado = cursor.fetchone()
+        if resultado:
+            messagebox.showinfo("Login", "Login realizado com sucesso!")
+        else:
+            messagebox.showerror("Login", "Nome de usuário ou senha incorretos.")
     else:
-        messagebox.showwarning("Login", "Usuário ou senha incorretos.")
+        messagebox.showwarning("Login", "Por favor, preencha todos os campos.")
 
 root = tk.Tk()
 root.title("Cadastro e Login")
