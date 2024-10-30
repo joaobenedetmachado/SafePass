@@ -31,13 +31,16 @@ style.configure("TNotebook", borderwidth=5)
 style.configure("TNotebook.Tab", padding=[10, 5])  # Ajuste de padding para as abas
 
 notebook = ttk.Notebook(root)
-notebook.pack(pady=10, expand=True)
+notebook.pack(pady=10, expand=True, fill='both', padx=20)  # Adicionado fill='both' e padx
 
-# Criando as abas
-aba_login = ttk.Frame(notebook)
+# Criando as abas com tamanho específico
+aba_login = ttk.Frame(notebook, width=360, height=360)  # Define tamanho específico
+aba_login.pack(fill='both', expand=True)  # Faz a aba expandir para preencher o espaço
+
+aba_cadastro = ttk.Frame(notebook, width=360, height=360)  # Define tamanho específico
+aba_cadastro.pack(fill='both', expand=True)  # Faz a aba expandir para preencher o espaço
+
 notebook.add(aba_login, text='Login')
-
-aba_cadastro = ttk.Frame(notebook)
 notebook.add(aba_cadastro, text='Cadastro')
 
 # Função de cadastro
@@ -102,7 +105,8 @@ def afterLogin(usuario):
         text_area.delete(1.0, tk.END)
         if resultadoSenhas: 
             for senha in resultadoSenhas:
-                text_area.insert(tk.END, f"{senha[0]}\n")
+                senhaEncriptografada = senha[0]
+                text_area.insert(tk.END, f"{enc.descriptografar(senhaEncriptografada)}\n")
         else:
             text_area.insert(tk.END, "Nenhuma senha encontrada.")
 
