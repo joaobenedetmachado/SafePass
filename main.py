@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import mysql.connector
 import encrypt as enc
+import haveibeenpwned as hibp
 
 # Configurações do banco de dados
 DB_HOST = "127.0.0.1"
@@ -91,6 +92,8 @@ def afterLogin(usuario):
     aba_senhas = ttk.Frame(notebook) 
     notebook.add(aba_senhas, text='Senhas')
     
+    label_Senhas = tk.Label(aba_senhas, text="Senhas:", bg="#f0f0f0")
+    label_Senhas.pack(pady=(25, 0))  
     text_area = tk.Text(aba_senhas, height=10, width=40, bg="#ffffff", bd=3, relief="sunken", wrap=tk.WORD)
     text_area.pack(pady=20)
     text_area.config(state='normal')  
@@ -105,6 +108,26 @@ def afterLogin(usuario):
     text_area.config(state='disabled')
     button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=lambda: cadastrarNovaSenhaArea(iduser, resultado, text_area))
     button_criarNovaSenha.pack(pady=(20, 20))
+    
+    # parte pra area do haveibeenpwned
+    aba_haveibeenpwned = ttk.Frame(notebook) 
+    notebook.add(aba_haveibeenpwned, text='Have I Been Pwned')
+    
+    label_senha = tk.Label(aba_haveibeenpwned, text="Senha:", bg="#f0f0f0")
+    label_senha.pack(pady=(20, 5))  
+    
+    entry_senhahaveibeenpwned = tk.Entry(aba_haveibeenpwned)
+    entry_senhahaveibeenpwned.pack(pady=(0, 20))  
+    
+    button_haveibeenpwned = tk.Button(aba_haveibeenpwned, text="Checar se senha ja foi vazada", command=lambda: hibp.haveibeenpwned(entry_senhahaveibeenpwned.get()))
+    button_haveibeenpwned.pack(pady=(20, 20))
+    
+    #parte pra area do gerador de senhas
+    aba_geradordesenhas = ttk.Frame(notebook) 
+    notebook.add(aba_geradordesenhas, text='Gerador De Senhas')
+    
+
+    
 
 def recarregar(resultado, text_area):
     text_area.config(state='normal')
@@ -124,7 +147,7 @@ def recarregar(resultado, text_area):
             text_area.insert(tk.END, f"{senhaDescriptografada.ljust(24)} | {siteName}\n")
     else:
         text_area.insert(tk.END, "Nenhuma senha encontrada.")
-        text_area.config(state='disable')
+    text_area.config(state='disable')
 
 
 
