@@ -8,42 +8,38 @@ import geradordesenha as gds
 # Configurações do banco de dados
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
-DB_PASSWORD = "123123123"
+DB_PASSWORD = ""
 DB_DATABASE = "vaultify"
-DB_PORT = 3307 # deletar essa linha 
 
 # Conexão com o banco de dados
 DBconexao = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
     password=DB_PASSWORD,
-    database=DB_DATABASE,
-    port = DB_PORT # deletar esse linha e a virgula de cima
+    database=DB_DATABASE
 )
 
 cursor = DBconexao.cursor()
 
-# Criação da janela principal
 root = tk.Tk()
 root.title("Cadastro e Login")
 root.geometry("600x400")
-root.configure(bg="#f0f0f0")  # Cor de fundo
+root.configure(bg="#f0f0f0")  
 root.resizable(False, False)
 
-# Estilização do notebook
+
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
-style.configure("TNotebook.Tab", padding=[10, 5])  # Ajuste de padding para as abas
+style.configure("TNotebook.Tab", padding=[10, 5]) 
 
 notebook = ttk.Notebook(root)
-notebook.pack(pady=10, expand=True, fill='both', padx=20)  # Adicionado fill='both' e padx
+notebook.pack(pady=10, expand=True, fill='both', padx=20)  
 
-# Criando as abas com tamanho específico
-aba_login = ttk.Frame(notebook, width=400, height=360)  # Define tamanho específico
-aba_login.pack(fill='both', expand=True)  # Faz a aba expandir para preencher o espaço
+aba_login = ttk.Frame(notebook, width=400, height=360)  
+aba_login.pack(fill='both', expand=True) 
 
-aba_cadastro = ttk.Frame(notebook, width=360, height=360)  # Define tamanho específico
-aba_cadastro.pack(fill='both', expand=True)  # Faz a aba expandir para preencher o espaço
+aba_cadastro = ttk.Frame(notebook, width=360, height=360)  
+aba_cadastro.pack(fill='both', expand=True)  
 
 notebook.add(aba_login, text='Login')
 notebook.add(aba_cadastro, text='Cadastro')
@@ -128,7 +124,7 @@ def afterLogin(usuario):
     notebook.add(aba_geradordesenhas, text='Gerador De Senhas')
 
     label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
-    label_caracteres.pack(pady=(20, 5))  # Corrigido aqui
+    label_caracteres.pack(pady=(20, 5))
 
     entry_geradordesenhas = tk.Entry(aba_geradordesenhas)
     entry_geradordesenhas.pack(pady=(0, 20))
@@ -136,18 +132,26 @@ def afterLogin(usuario):
     label_resultado = tk.Label(aba_geradordesenhas, text="Senha Gerada:", bg="#f0f0f0")
     label_resultado.pack(pady=(0, 20))
 
-    def gerar_senha():
-        try:
-            quantidade = int(entry_geradordesenhas.get())  # Captura a quantidade de caracteres
-            senha_gerada = gds.GerarSenhas(quantidade)  # Chama a função para gerar a senha
-            label_resultado.config(text=f"Senha Gerada: {senha_gerada}")  # Atualiza a label com a senha gerada
-        except ValueError:
-            label_resultado.config(text="Por favor, insira um número válido.")  # Tratamento de erro para entradas inválidas
+    text_area_gerada = tk.Text(aba_geradordesenhas, height=1, width=20, bg="#ffffff", bd=3, relief="sunken", wrap=tk.WORD)
+    text_area_gerada.pack(pady=20)
+    text_area_gerada.config(state='normal')
 
-    button_gerarsenha = tk.Button(aba_geradordesenhas, text="Gerar Senha", command=gerar_senha)
+    button_gerarsenha = tk.Button(aba_geradordesenhas, text="Gerar Senha", command=lambda: gerar_senha(entry_geradordesenhas.get(), text_area_gerada))
     button_gerarsenha.pack(pady=(20, 20))
-    
-    
+
+def gerar_senha(entry_geradordesenhas, text_area_gerada):
+    try:
+        quantidade = int(entry_geradordesenhas)  
+        senha_gerada = gds.GerarSenhas(quantidade)  
+        text_area_gerada.config(state='normal')  
+        text_area_gerada.delete(1.0, tk.END) 
+        text_area_gerada.insert(tk.END, f"{senha_gerada}")  
+        text_area_gerada.config(state='disable') 
+    except ValueError:
+        text_area_gerada.config(state='normal')
+        text_area_gerada.delete(1.0, tk.END)
+        text_area_gerada.insert(tk.END, "Por favor, insira um número válido.") 
+        text_area_gerada.config(state='disable')
     
 
 def recarregar(resultado, text_area):
@@ -165,13 +169,14 @@ def recarregar(resultado, text_area):
     if resultadoSenhas:
         for senha, siteName in resultadoSenhas:
             senhaDescriptografada = enc.descriptografar(senha)
-            text_area.insert(tk.END, f"{senhaDescriptografada.ljust(24)} | {siteName}\n")
+            if senhaDescriptografada is not None:
+                text_area.insert(tk.END, f"{senhaDescriptografada.ljust(24)} | {siteName}\n")
+            else:
+                text_area.insert(tk.END, f"{'Erro na descriptografia'.ljust(24)} | {siteName}\n")
+
     else:
         text_area.insert(tk.END, "Nenhuma senha encontrada.")
     text_area.config(state='disable')
-
-
-
 
 # func p cadastrar senha nova no db
 def cadastrarNovaSenhaArea(iduser, resultado, text_area):
@@ -192,12 +197,17 @@ def cadastrarNovaSenhaArea(iduser, resultado, text_area):
     button_criarNovaSenha.pack(pady=(20, 20))
 
 def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName, resultado, text_area):
-    comandoSQL = f'INSERT INTO passwords(userid, passwordhash, sitename) VALUES({iduser}, "{password}", "{siteName}")'
-    cursor.execute(comandoSQL)
-    DBconexao.commit()
-    print("Senha cadastrada")
-    recarregar(resultado, text_area)
-    janelaCriarSenha.destroy()
+    try:
+        comandoSQL = f'INSERT INTO passwords(userid, passwordhash, sitename) VALUES({iduser}, "{password}", "{siteName}")'
+        print(iduser, password, siteName, type(password), type(siteName))
+        cursor.execute(comandoSQL)
+        DBconexao.commit()
+        print("Senha cadastrada")
+        recarregar(resultado, text_area)
+        janelaCriarSenha.destroy()
+    except ValueError:
+        messagebox.showerror("CadastroSenha", "Formato da senha incorreta!")
+        
 
 # cadastro
 label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:", bg="#f0f0f0")
