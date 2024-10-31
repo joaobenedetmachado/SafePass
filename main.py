@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 import mysql.connector
 import encrypt as enc
 import haveibeenpwned as hibp
+import geradordesenha as gds    
 
 # Configurações do banco de dados
 DB_HOST = "127.0.0.1"
@@ -122,11 +123,31 @@ def afterLogin(usuario):
     button_haveibeenpwned = tk.Button(aba_haveibeenpwned, text="Checar se senha ja foi vazada", command=lambda: hibp.haveibeenpwned(entry_senhahaveibeenpwned.get()))
     button_haveibeenpwned.pack(pady=(20, 20))
     
-    #parte pra area do gerador de senhas
-    aba_geradordesenhas = ttk.Frame(notebook) 
+    # Parte para a área do gerador de senhas
+    aba_geradordesenhas = ttk.Frame(notebook)
     notebook.add(aba_geradordesenhas, text='Gerador De Senhas')
-    
 
+    label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
+    label_caracteres.pack(pady=(20, 5))  # Corrigido aqui
+
+    entry_geradordesenhas = tk.Entry(aba_geradordesenhas)
+    entry_geradordesenhas.pack(pady=(0, 20))
+
+    label_resultado = tk.Label(aba_geradordesenhas, text="Senha Gerada:", bg="#f0f0f0")
+    label_resultado.pack(pady=(0, 20))
+
+    def gerar_senha():
+        try:
+            quantidade = int(entry_geradordesenhas.get())  # Captura a quantidade de caracteres
+            senha_gerada = gds.GerarSenhas(quantidade)  # Chama a função para gerar a senha
+            label_resultado.config(text=f"Senha Gerada: {senha_gerada}")  # Atualiza a label com a senha gerada
+        except ValueError:
+            label_resultado.config(text="Por favor, insira um número válido.")  # Tratamento de erro para entradas inválidas
+
+    button_gerarsenha = tk.Button(aba_geradordesenhas, text="Gerar Senha", command=gerar_senha)
+    button_gerarsenha.pack(pady=(20, 20))
+    
+    
     
 
 def recarregar(resultado, text_area):
