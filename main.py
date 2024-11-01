@@ -28,7 +28,7 @@ root.title("Cadastro e Login")
 root.geometry("600x400")
 root.configure(bg="#f0f0f0")  
 root.resizable(False, False)
-
+root.iconbitmap("./logo.ico")
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
@@ -99,7 +99,7 @@ def afterLogin(usuario):
     aba_senhas.columnconfigure(0, weight=1)  # col para label e área de texto
     aba_senhas.columnconfigure(1, weight=0)  # col p o botao
     
-    listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20)
+    listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20, activestyle="none")
     listbox_senhas.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
     root.title(f"Conectado como: {usuario} | {ip.pegarIPCidade()}")
 
@@ -186,7 +186,17 @@ def gerar_senha(entry_geradordesenhas, text_area_gerada):
     
 
 def recarregar(resultado, listbox_senhas):
-    listbox_senhas.delete(0, tk.END) 
+    listbox_senhas.config(font=("Courier", 10))
+    listbox_senhas.delete(0, tk.END)
+    
+    largura_id = 10
+    largura_senha = 20
+    largura_site = 15
+
+    cabecalho = f"{'ID:'.ljust(largura_id)}{'SENHA:'.ljust(largura_senha)}{'SITE:'.ljust(largura_site)}"
+    listbox_senhas.insert(tk.END, cabecalho)
+    listbox_senhas.insert(tk.END, "―" * (largura_id + largura_senha + largura_site)) 
+
     iduser = resultado[0]
     comandoSQL = f"SELECT idpassword, passwordhash, sitename FROM passwords WHERE userid = {iduser}"
     cursor.execute(comandoSQL)
@@ -196,11 +206,16 @@ def recarregar(resultado, listbox_senhas):
         for id, senha, siteName in resultadoSenhas:
             senhaDescriptografada = enc.descriptografar(senha)
             if senhaDescriptografada is not None:
-                listbox_senhas.insert(tk.END, f"ID {id:<3} |{senhaDescriptografada:<50}  {'|' + siteName:<10}")
+                id_text = f"ID {id}".ljust(largura_id)
+                senha_text = senhaDescriptografada.ljust(largura_senha)
+                site_text = siteName.ljust(largura_site)
+                listbox_senhas.insert(tk.END, f"{id_text}{senha_text}{site_text}")
             else:
-                listbox_senhas.insert(tk.END, f"{'Erro na descriptografia'} | {siteName}")
+                listbox_senhas.insert(tk.END, f"Erro na descriptografia | {siteName}")
     else:
         listbox_senhas.insert(tk.END, "Nenhuma senha encontrada.")
+
+
 
 # func p cadastrar senha nova no db
 def cadastrarNovaSenhaArea(iduser, resultado, text_area):
@@ -303,42 +318,64 @@ def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName, resultado, 
     except ValueError:
         messagebox.showerror("CadastroSenha", "Formato da senha incorreta!")
     
-# cadastro
+
+aba_cadastro.grid_rowconfigure(1, weight=1)
+aba_login.grid_rowconfigure(1, weight=1)
+aba_cadastro.grid_rowconfigure(2, weight=1)
+aba_login.grid_rowconfigure(2, weight=1)
+aba_cadastro.grid_rowconfigure(3, weight=1)
+aba_login.grid_rowconfigure(3, weight=1)
+
 aba_cadastro.columnconfigure(0, weight=1)
 aba_cadastro.columnconfigure(1, weight=2)
-
-label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:", bg="#f0f0f0")
-label_usuario_cadastro.grid(row=0, column=0, pady=(20, 5), sticky='w')
-
-entry_usuario_cadastro = tk.Entry(aba_cadastro)
-entry_usuario_cadastro.grid(row=0, column=1, pady=(20, 5), sticky='ew')
-
-label_senha_cadastro = tk.Label(aba_cadastro, text="Senha:", bg="#f0f0f0")
-label_senha_cadastro.grid(row=1, column=0, pady=(20, 5), sticky='w')
-
-entry_senha_cadastro = tk.Entry(aba_cadastro, show="*")
-entry_senha_cadastro.grid(row=1, column=1, pady=(20, 5), sticky='ew')
-
-button_cadastrar = tk.Button(aba_cadastro, text="Cadastrar", command=cadastrar)
-button_cadastrar.grid(row=2, column=0, columnspan=2, pady=(20, 20))
-
-
-#login
 
 aba_login.columnconfigure(0, weight=1)
 aba_login.columnconfigure(1, weight=2)
 
-label_usuario_login = tk.Label(aba_login, text="Usuário:", bg="#f0f0f0")
-label_usuario_login.grid(row=0, column=0, pady=(20, 5), sticky='w')
-entry_usuario_login = tk.Entry(aba_login)
-entry_usuario_login.grid(row=0, column=1, pady=(20, 5), sticky='ew')
+# Estilo do Label e Entry
+label_style = {'bg': "#f0f0f0", 'font': ('Arial', 12)}
+entry_style = {'font': ('Arial', 12)}
 
-label_senha_login = tk.Label(aba_login, text="Senha:", bg="#f0f0f0")
-label_senha_login.grid(row=1, column=0, pady=(20, 5), sticky='w')
-entry_senha_login = tk.Entry(aba_login, show="*")
-entry_senha_login.grid(row=1, column=1, pady=(20, 5), sticky='ew')
+for i in range(3):
+    aba_cadastro.grid_rowconfigure(i, weight=1)
+    aba_login.grid_rowconfigure(i, weight=1)
 
-button_logar = tk.Button(aba_login, text="Login", command=logar)
+aba_cadastro.columnconfigure(0, weight=1)
+aba_cadastro.columnconfigure(1, weight=1)
+
+aba_login.columnconfigure(0, weight=1)
+aba_login.columnconfigure(1, weight=1)
+
+#cadstro
+label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:", bg="#f0f0f0")
+label_usuario_cadastro.grid(row=0, column=0, pady=(5, 5), sticky='e')
+
+entry_usuario_cadastro = tk.Entry(aba_cadastro, width=30)  
+entry_usuario_cadastro.grid(row=0, column=1, pady=(5, 5), sticky='w')
+
+label_senha_cadastro = tk.Label(aba_cadastro, text="Senha:", bg="#f0f0f0")
+label_senha_cadastro.grid(row=1, column=0, pady=(5, 5), sticky='e')
+
+entry_senha_cadastro = tk.Entry(aba_cadastro, show="*", width=30)  
+entry_senha_cadastro.grid(row=1, column=1, pady=(5, 5), sticky='w')
+
+button_cadastrar = tk.Button(aba_cadastro, text="Cadastrar", command=cadastrar, width=15, bg="#4CAF50", fg="white", font=('Arial', 12))
+button_cadastrar.grid(row=2, column=0, columnspan=2, pady=(20, 20))
+
+#logi
+label_usuario_login = tk.Label(aba_login, text="Usuário:")
+label_usuario_login.grid(row=0, column=0, pady=(5, 5), sticky='e')
+
+entry_usuario_login = tk.Entry(aba_login, width=30)  
+entry_usuario_login.grid(row=0, column=1, pady=(5, 5), sticky='w')
+
+label_senha_login = tk.Label(aba_login, text="Senha:")
+label_senha_login.grid(row=1, column=0, pady=(5, 5), sticky='e')
+
+entry_senha_login = tk.Entry(aba_login, show="*", width=30)  
+entry_senha_login.grid(row=1, column=1, pady=(5, 5), sticky='w') 
+
+button_logar = tk.Button(aba_login, text="Login", command=logar, width=15, bg="#2196F3", fg="white", font=('Arial', 12))
 button_logar.grid(row=2, column=0, columnspan=2, pady=(20, 20))
 
 root.mainloop()
