@@ -98,11 +98,8 @@ def afterLogin(usuario):
     aba_senhas.columnconfigure(0, weight=1)  # col para label e área de texto
     aba_senhas.columnconfigure(1, weight=0)  # col p o botao
     
-    label_Senhas = tk.Label(aba_senhas, text="Senhas:", bg="#f0f0f0")
-    label_Senhas.grid(row=0, column=0, pady=(25, 5), sticky='w') 
-    
-    listbox_senhas = tk.Listbox(aba_senhas, height=10, width=40, bg="#ffffff", bd=3, relief="sunken")
-    listbox_senhas.grid(row=1, column=0, padx=10, pady=5, sticky='nsew')
+    listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20)
+    listbox_senhas.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
     root.title(f"Conectado como: {usuario}")
 
     comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
@@ -111,14 +108,23 @@ def afterLogin(usuario):
     iduser = resultado[0]
     if resultado:
         recarregar(resultado, listbox_senhas)
-    
-    #bota p cadastrar senha
-    button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
-    button_criarNovaSenha.grid(row=1, column=1, padx=(5,10), pady=5, sticky='ne')
-    button_excluirSenha = tk.Button(aba_senhas, text="Excluir Senha", command=lambda: ExcluirSenha(listbox_senhas, usuario))
-    button_excluirSenha.grid(row=2, column=1, padx=(5,10), pady=5, sticky='ne')
-    button_editarSenha = tk.Button(aba_senhas, text="Editar Senha", command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
-    button_editarSenha.grid(row=3, column=1, padx=(5,10), pady=5, sticky='ne')
+        
+    # "div" pros botoes pra ficarem tudo juntinho
+    frame_botoes = tk.Frame(aba_senhas)
+    frame_botoes.grid(row=0, column=1, padx=10, pady=10, sticky='n')
+
+    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha", width=20, command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
+    button_criarNovaSenha.grid(row=0, column=0, padx=5, pady=5, sticky='ew')
+
+    button_excluirSenha = tk.Button(frame_botoes, text="Excluir Senha", width=20, command=lambda: ExcluirSenha(listbox_senhas, usuario))
+    button_excluirSenha.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
+
+    button_editarSenha = tk.Button(frame_botoes, text="Editar Senha", width=20, command=lambda: EditarSenhaArea(listbox_senhas, usuario))
+    button_editarSenha.grid(row=2, column=0, padx=5, pady=5, sticky='ew')
+
+    aba_senhas.grid_columnconfigure(0, weight=1)
+    aba_senhas.grid_rowconfigure(0, weight=1)
+
     
     # parte pra area do haveibeenpwned
     aba_haveibeenpwned = ttk.Frame(notebook) 
@@ -189,9 +195,9 @@ def recarregar(resultado, listbox_senhas):
         for id, senha, siteName in resultadoSenhas:
             senhaDescriptografada = enc.descriptografar(senha)
             if senhaDescriptografada is not None:
-                listbox_senhas.insert(tk.END, f"ID {id} |{senhaDescriptografada.ljust(24)} | {siteName.ljust(40)}")
+                listbox_senhas.insert(tk.END, f"ID {id:<3} |{senhaDescriptografada:<50}  {'|' + siteName:<10}")
             else:
-                listbox_senhas.insert(tk.END, f"{'Erro na descriptografia'.ljust(24)} | {siteName}")
+                listbox_senhas.insert(tk.END, f"{'Erro na descriptografia'} | {siteName}")
     else:
         listbox_senhas.insert(tk.END, "Nenhuma senha encontrada.")
 
@@ -213,15 +219,59 @@ def cadastrarNovaSenhaArea(iduser, resultado, text_area):
     button_criarNovaSenha = tk.Button(janelaCriarSenha, text="Cadastrar Nova Senha", command=lambda: CadastrarNovaSenha(janelaCriarSenha, iduser, enc.criptografar(entry_senha.get()), (entry_sitename.get()).title(), resultado, text_area))
     button_criarNovaSenha.pack(pady=(20, 20))
     
+def EditarSenhaArea(listbox_senhas, usuario):
+    listselecionado = listbox_senhas.curselection()
+    if not listselecionado:
+        messagebox.showwarning("Aviso", "Selecione uma senha para editar.")
+        return
     
+    item = listbox_senhas.get(listselecionado)
+    print(item)
+    id = int(item.split('|')[0].split()[1])  
+    senha = item.split('|')[1].strip()
+    site = item.split('|')[2].strip() 
+    print(id)
+    
+    #vo fazxer uma janela pra colocar o bgl pq é melhor
+    dialog = tk.Toplevel()
+    dialog.title("Editar Senha")
+    dialog.geometry("400x225")
+    
+    tk.Label(dialog, text="Novo nome do site:").pack(pady=10)
+    entry_site = tk.Entry(dialog, width=50)
+    entry_site.insert(0, site) 
+    entry_site.pack(pady=5)
+    
+    tk.Label(dialog, text="Nova senha:").pack(pady=10)
+    entry_senha = tk.Entry(dialog, width=50)
+    entry_senha.insert(0, senha) 
+    entry_senha.pack(pady=5)
+        
+    button_criarNovaSenha = tk.Button(dialog, text="Cadastrar Nova Senha", command=lambda: EditarSenha(entry_senha.get(), entry_site.get(), id, usuario, listbox_senhas))
+    button_criarNovaSenha.pack(pady=(20, 20))         
+    
+       
+def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas):
+    comandoSQL=f'UPDATE passwords SET passwordhash = "{enc.criptografar(novaSenha)}", sitename="{novoSite}" where idpassword = {id}'
+    cursor.execute(comandoSQL)
+    DBconexao.commit()
+    messagebox.showinfo("Sucesso", "Senha editada com sucesso.")
+    comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
+    cursor.execute(comandoSQL)
+    resultado = cursor.fetchone()
+    if resultado:
+        recarregar(resultado, listbox_senhas)
+    
+        
+
 
 def ExcluirSenha(listbox_senhas, usuario):
-    selected_index = listbox_senhas.curselection()
-    if not selected_index:
+    listselecionado = listbox_senhas.curselection()
+    if not listselecionado:
         messagebox.showwarning("Aviso", "sem senha selecionada para excluir.")
         return
 
-    item = listbox_senhas.get(selected_index)
+    item = listbox_senhas.get(listselecionado)
     id = int(item.split('|')[0].split()[1])
     print(id)
     
@@ -236,7 +286,6 @@ def ExcluirSenha(listbox_senhas, usuario):
         comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
         cursor.execute(comandoSQL)
         resultado = cursor.fetchone()
-        iduser = resultado[0]
         if resultado:
             recarregar(resultado, listbox_senhas)
     
