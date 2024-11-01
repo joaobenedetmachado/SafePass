@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 import mysql.connector
 import encrypt as enc
 import haveibeenpwned as hibp
@@ -8,7 +8,7 @@ import geradordesenha as gds
 # Configurações do banco de dados
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
-DB_PASSWORD = ""
+DB_PASSWORD = "123123123"
 DB_DATABASE = "vaultify"
 
 # Conexão com o banco de dados
@@ -16,7 +16,8 @@ DBconexao = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
     password=DB_PASSWORD,
-    database=DB_DATABASE
+    database=DB_DATABASE,
+    port=3307
 )
 
 cursor = DBconexao.cursor()
@@ -44,7 +45,7 @@ aba_cadastro.pack(fill='both', expand=True)
 notebook.add(aba_login, text='Login')
 notebook.add(aba_cadastro, text='Cadastro')
 
-# Função de cadastro
+# funcao de cadastro
 def cadastrar():
     usuario = entry_usuario_cadastro.get()
     senha = entry_senha_cadastro.get()
@@ -64,7 +65,7 @@ def cadastrar():
     else:
         messagebox.showwarning("Cadastro", "Por favor, preencha todos os campos.")
 
-# Função de login
+# funcao de login
 def logar():
     usuario = entry_usuario_login.get()
     senha = entry_senha_login.get()
@@ -100,9 +101,8 @@ def afterLogin(usuario):
     label_Senhas = tk.Label(aba_senhas, text="Senhas:", bg="#f0f0f0")
     label_Senhas.grid(row=0, column=0, pady=(25, 5), sticky='w') 
     
-    text_area = tk.Text(aba_senhas, height=10, width=40, bg="#ffffff", bd=3, relief="sunken", wrap=tk.WORD)
-    text_area.grid(row=1, column=0, padx=10, pady=5, sticky='nsew')
-    text_area.config(state='normal')  
+    listbox_senhas = tk.Listbox(aba_senhas, height=10, width=40, bg="#ffffff", bd=3, relief="sunken")
+    listbox_senhas.grid(row=1, column=0, padx=10, pady=5, sticky='nsew')
     root.title(f"Conectado como: {usuario}")
 
     comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
@@ -110,12 +110,15 @@ def afterLogin(usuario):
     resultado = cursor.fetchone()
     iduser = resultado[0]
     if resultado:
-        recarregar(resultado, text_area)
-    text_area.config(state='disabled')
+        recarregar(resultado, listbox_senhas)
     
     #bota p cadastrar senha
-    button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=lambda: cadastrarNovaSenhaArea(iduser, resultado, text_area))
+    button_criarNovaSenha = tk.Button(aba_senhas, text="Cadastrar Nova Senha", command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
     button_criarNovaSenha.grid(row=1, column=1, padx=(5,10), pady=5, sticky='ne')
+    button_excluirSenha = tk.Button(aba_senhas, text="Excluir Senha", command=lambda: ExcluirSenha(listbox_senhas, usuario))
+    button_excluirSenha.grid(row=2, column=1, padx=(5,10), pady=5, sticky='ne')
+    button_editarSenha = tk.Button(aba_senhas, text="Editar Senha", command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
+    button_editarSenha.grid(row=3, column=1, padx=(5,10), pady=5, sticky='ne')
     
     # parte pra area do haveibeenpwned
     aba_haveibeenpwned = ttk.Frame(notebook) 
@@ -175,29 +178,22 @@ def gerar_senha(entry_geradordesenhas, text_area_gerada):
         text_area_gerada.config(state='disable')
     
 
-def recarregar(resultado, text_area):
-    text_area.config(state='normal')
-    print(resultado, text_area)
+def recarregar(resultado, listbox_senhas):
+    listbox_senhas.delete(0, tk.END) 
     iduser = resultado[0]
-    comandoSQL = f"SELECT passwordhash, sitename FROM passwords WHERE userid = {iduser}"
+    comandoSQL = f"SELECT idpassword, passwordhash, sitename FROM passwords WHERE userid = {iduser}"
     cursor.execute(comandoSQL)
     resultadoSenhas = cursor.fetchall()
 
-    text_area.delete(1.0, tk.END)
-    text_area.insert(tk.END, f"{'Senha'.ljust(24)} | {'Site'}\n")
-    text_area.insert(tk.END, "―" * 48 + "\n")
-
     if resultadoSenhas:
-        for senha, siteName in resultadoSenhas:
+        for id, senha, siteName in resultadoSenhas:
             senhaDescriptografada = enc.descriptografar(senha)
             if senhaDescriptografada is not None:
-                text_area.insert(tk.END, f"{senhaDescriptografada.ljust(24)} | {siteName}\n")
+                listbox_senhas.insert(tk.END, f"ID {id} |{senhaDescriptografada.ljust(24)} | {siteName.ljust(40)}")
             else:
-                text_area.insert(tk.END, f"{'Erro na descriptografia'.ljust(24)} | {siteName}\n")
-
+                listbox_senhas.insert(tk.END, f"{'Erro na descriptografia'.ljust(24)} | {siteName}")
     else:
-        text_area.insert(tk.END, "Nenhuma senha encontrada.")
-    text_area.config(state='disable')
+        listbox_senhas.insert(tk.END, "Nenhuma senha encontrada.")
 
 # func p cadastrar senha nova no db
 def cadastrarNovaSenhaArea(iduser, resultado, text_area):
@@ -216,6 +212,34 @@ def cadastrarNovaSenhaArea(iduser, resultado, text_area):
     entry_sitename.pack(pady=(0, 20))  
     button_criarNovaSenha = tk.Button(janelaCriarSenha, text="Cadastrar Nova Senha", command=lambda: CadastrarNovaSenha(janelaCriarSenha, iduser, enc.criptografar(entry_senha.get()), (entry_sitename.get()).title(), resultado, text_area))
     button_criarNovaSenha.pack(pady=(20, 20))
+    
+    
+
+def ExcluirSenha(listbox_senhas, usuario):
+    selected_index = listbox_senhas.curselection()
+    if not selected_index:
+        messagebox.showwarning("Aviso", "sem senha selecionada para excluir.")
+        return
+
+    item = listbox_senhas.get(selected_index)
+    id = int(item.split('|')[0].split()[1])
+    print(id)
+    
+    confirm = messagebox.askyesno("confirmar delete", f"desejas excluir a senha do ID {id}?")
+    if not confirm:
+        return
+    else: 
+        comandosql = f'Delete from passwords where idpassword = {id}'
+        cursor.execute(comandosql)
+        DBconexao.commit()
+        messagebox.showinfo("Sucesso", f"A senha do ID {id} foi excluída com sucesso")
+        comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
+        cursor.execute(comandoSQL)
+        resultado = cursor.fetchone()
+        iduser = resultado[0]
+        if resultado:
+            recarregar(resultado, listbox_senhas)
+    
 
 def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName, resultado, text_area):
     try:
