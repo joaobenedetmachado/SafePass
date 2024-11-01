@@ -4,6 +4,7 @@ import mysql.connector
 import encrypt as enc
 import haveibeenpwned as hibp
 import geradordesenha as gds    
+import geolocal as ip
 
 # Configurações do banco de dados
 DB_HOST = "127.0.0.1"
@@ -100,7 +101,7 @@ def afterLogin(usuario):
     
     listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20)
     listbox_senhas.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
-    root.title(f"Conectado como: {usuario}")
+    root.title(f"Conectado como: {usuario} | {ip.pegarIPCidade()}")
 
     comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
     cursor.execute(comandoSQL)
