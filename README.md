@@ -39,6 +39,7 @@
 
 ### Passos
 
-1. Clone este repositório:
+1. Rodar para instalar as bibliotecas utilizadas:
    ```bash
-   git clone https://github.com/joaobenedetmachado/Vaultify.git
+   pip install requirements.txt
+   ```

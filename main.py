@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import mysql.connector
-import encrypt as enc
-import haveibeenpwned as hibp
-import geradordesenha as gds    
-import geolocal as ip
+import utils.encrypt as enc
+import utils.haveibeenpwned as hibp
+import utils.geradordesenha as gds    
+import utils.geolocal as ip
 
 # Configurações do banco de dados
 DB_HOST = "127.0.0.1"
@@ -28,7 +28,7 @@ root.title("Cadastro e Login")
 root.geometry("600x400")
 root.configure(bg="#f0f0f0")  
 root.resizable(False, False)
-root.iconbitmap("./logo.ico")
+root.iconbitmap("./assets/logo.ico")
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
