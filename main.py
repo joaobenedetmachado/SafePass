@@ -6,13 +6,11 @@ import utils.haveibeenpwned as hibp
 import utils.geradordesenha as gds    
 import utils.geolocal as ip
 
-# Configurações do banco de dados
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
 DB_PASSWORD = "123123123"
 DB_DATABASE = "vaultify"
 
-# Conexão com o banco de dados
 DBconexao = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
@@ -23,12 +21,13 @@ DBconexao = mysql.connector.connect(
 
 cursor = DBconexao.cursor()
 
+
 root = tk.Tk()
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.configure(bg="#f0f0f0")  
-root.resizable(False, False)
-root.iconbitmap("./assets/logo.ico")
+root.resizable(False, False) # pra nao poder mudar o tamanho da janela
+root.iconbitmap("./assets/logo.ico") #icone da pagina
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
@@ -162,40 +161,40 @@ def afterLogin(usuario):
     
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):
-    root.title("Cadastro e Login")
-    notebook.forget(aba_senhas)    
-    notebook.forget(aba_geradordesenhas)
+    root.title("Cadastro e Login") # ele volta ao titulo, 
+    notebook.forget(aba_senhas)  # delete todos os notebooks, e adiciona os normais de login e cadastro
+    notebook.forget(aba_geradordesenhas) # e apaga o botao de deslogar
     notebook.forget(aba_haveibeenpwned)
     notebook.add(aba_login, text='Login')
     notebook.add(aba_cadastro, text='Cadastro')
     button_deslogar.destroy()
     
 def gerar_senha(entry_geradordesenhas, text_area_gerada):
-    try:
+    try: # gera a senha com o GerarSenha, e coloca no text area q tem la na janelinha
         quantidade = int(entry_geradordesenhas)  
         senha_gerada = gds.GerarSenhas(quantidade)  
         text_area_gerada.config(state='normal')  
         text_area_gerada.delete(1.0, tk.END) 
         text_area_gerada.insert(tk.END, f"{senha_gerada}")  
         text_area_gerada.config(state='disable') 
-    except ValueError:
+    except ValueError: # except so pra ter, pq de vdd nao precisa
         text_area_gerada.config(state='normal')
         text_area_gerada.delete(1.0, tk.END)
         text_area_gerada.insert(tk.END, "Por favor, insira um número válido.") 
         text_area_gerada.config(state='disable')
     
 
-def recarregar(resultado, listbox_senhas):
-    listbox_senhas.config(font=("Courier", 10))
+def recarregar(resultado, listbox_senhas): # recarrega a listbox
+    listbox_senhas.config(font=("Courier", 10)) # coloca um fonte monspacada pra ficar certinho
     listbox_senhas.delete(0, tk.END)
     
-    largura_id = 10
-    largura_senha = 20
-    largura_site = 15
+    larguraId = 10 # sem isso nao dava certo
+    larguraSenha = 20
+    larguraSite = 15
 
-    cabecalho = f"{'ID:'.ljust(largura_id)}{'SENHA:'.ljust(largura_senha)}{'SITE:'.ljust(largura_site)}"
+    cabecalho = f"{'ID:'.ljust(larguraId)}{'SENHA:'.ljust(larguraSenha)}{'SITE:'.ljust(larguraSite)}"
     listbox_senhas.insert(tk.END, cabecalho)
-    listbox_senhas.insert(tk.END, "―" * (largura_id + largura_senha + largura_site)) 
+    listbox_senhas.insert(tk.END, "―" * (larguraId + larguraSenha + larguraSite)) 
 
     iduser = resultado[0]
     comandoSQL = f"SELECT idpassword, passwordhash, sitename FROM passwords WHERE userid = {iduser}"
@@ -204,11 +203,11 @@ def recarregar(resultado, listbox_senhas):
 
     if resultadoSenhas:
         for id, senha, siteName in resultadoSenhas:
-            senhaDescriptografada = enc.descriptografar(senha)
-            if senhaDescriptografada is not None:
-                id_text = f"ID {id}".ljust(largura_id)
-                senha_text = senhaDescriptografada.ljust(largura_senha)
-                site_text = siteName.ljust(largura_site)
+            senhaDescriptografada = enc.descriptografar(senha) # descripta a senha
+            if senhaDescriptografada is not None: # e ve se tem algo nos resultados ne
+                id_text = f"ID {id}".ljust(larguraId)
+                senha_text = senhaDescriptografada.ljust(larguraSenha)
+                site_text = siteName.ljust(larguraSite)
                 listbox_senhas.insert(tk.END, f"{id_text}{senha_text}{site_text}")
             else:
                 listbox_senhas.insert(tk.END, f"Erro na descriptografia | {siteName}")
@@ -243,9 +242,10 @@ def EditarSenhaArea(listbox_senhas, usuario):
     
     item = listbox_senhas.get(listselecionado)
     print(item)
-    id = int(item.split('|')[0].split()[1])  
-    senha = item.split('|')[1].strip()
-    site = item.split('|')[2].strip() 
+    parts = item.split()
+    id = int(parts[1])    
+    senha = parts[2]       
+    site = parts[3] 
     print(id)
     
     #vo fazxer uma janela pra colocar o bgl pq é melhor
@@ -278,9 +278,7 @@ def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas):
     if resultado:
         recarregar(resultado, listbox_senhas)
     
-        
-
-
+    
 def ExcluirSenha(listbox_senhas, usuario):
     listselecionado = listbox_senhas.curselection()
     if not listselecionado:
@@ -288,7 +286,8 @@ def ExcluirSenha(listbox_senhas, usuario):
         return
 
     item = listbox_senhas.get(listselecionado)
-    id = int(item.split('|')[0].split()[1])
+    parts = item.split()
+    id = int(parts[1])    
     print(id)
     
     confirm = messagebox.askyesno("confirmar delete", f"desejas excluir a senha do ID {id}?")
@@ -319,7 +318,7 @@ def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName, resultado, 
         messagebox.showerror("CadastroSenha", "Formato da senha incorreta!")
     
 
-aba_cadastro.grid_rowconfigure(1, weight=1)
+aba_cadastro.grid_rowconfigure(1, weight=1) # cria row's e column's pra tipo, gerar um grid
 aba_login.grid_rowconfigure(1, weight=1)
 aba_cadastro.grid_rowconfigure(2, weight=1)
 aba_login.grid_rowconfigure(2, weight=1)
@@ -332,19 +331,9 @@ aba_cadastro.columnconfigure(1, weight=2)
 aba_login.columnconfigure(0, weight=1)
 aba_login.columnconfigure(1, weight=2)
 
-# Estilo do Label e Entry
+# pra poupar trabalho
 label_style = {'bg': "#f0f0f0", 'font': ('Arial', 12)}
 entry_style = {'font': ('Arial', 12)}
-
-for i in range(3):
-    aba_cadastro.grid_rowconfigure(i, weight=1)
-    aba_login.grid_rowconfigure(i, weight=1)
-
-aba_cadastro.columnconfigure(0, weight=1)
-aba_cadastro.columnconfigure(1, weight=1)
-
-aba_login.columnconfigure(0, weight=1)
-aba_login.columnconfigure(1, weight=1)
 
 #cadstro
 label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:", bg="#f0f0f0")
