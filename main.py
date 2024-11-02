@@ -1,10 +1,12 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox, simpledialog, filedialog
 import mysql.connector
 import utils.encrypt as enc
 import utils.haveibeenpwned as hibp
 import utils.geradordesenha as gds    
 import utils.geolocal as ip
+import pandas as pd
+
 
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
@@ -45,6 +47,35 @@ aba_cadastro.pack(fill='both', expand=True)
 notebook.add(aba_login, text='Login')
 notebook.add(aba_cadastro, text='Cadastro')
 
+def uploadSCV(iduser, text_area, resultado):
+    global df
+    file_path = filedialog.askopenfilename(filetypes=[("Arquivos CSV", "*.csv")])
+
+    if file_path:
+        df = pd.read_csv(file_path, sep=',', header=None)  # Adicionando header=None
+        print("Arquivo carregado com sucesso!")
+        print(df)
+
+        if df.empty:
+            print("O arquivo CSV está vazio.")
+            return  # Retorna se o DataFrame estiver vazio
+    
+        for i, r in df.iterrows():
+            password = r[0]
+            siteName = r[1]
+            print(password, siteName)
+            senhasCriptografa = enc.criptografar(password)
+            
+            comandoSQL = f'INSERT INTO passwords(userid, passwordhash, sitename) VALUES({iduser}, "{senhasCriptografa}", "{siteName}")'
+            print(iduser, password, siteName, type(password), type(siteName))
+            
+            try:
+                cursor.execute(comandoSQL)
+            except Exception as e:
+                print(f"Erro ao inserir dados: {e}")
+
+        DBconexao.commit()  # Commit após inserir todos os dados
+        recarregar(resultado, text_area)
 # funcao de cadastro
 def cadastrar():
     usuario = entry_usuario_cadastro.get()
@@ -84,6 +115,7 @@ def logar():
 
 # funcao apos o login
 def afterLogin(usuario):
+    root.title(f"{usuario} | {ip.pegarIPCidade()}")
     notebook.forget(aba_cadastro)
     notebook.forget(aba_login)
     button_deslogar = tk.Button(root, text="Deslogar", command=lambda: deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar))
@@ -100,7 +132,7 @@ def afterLogin(usuario):
     
     listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20, activestyle="none")
     listbox_senhas.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
-    root.title(f"Conectado como: {usuario} | {ip.pegarIPCidade()}")
+    
 
     comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
     cursor.execute(comandoSQL)
@@ -113,7 +145,7 @@ def afterLogin(usuario):
     frame_botoes = tk.Frame(aba_senhas)
     frame_botoes.grid(row=0, column=1, padx=10, pady=10, sticky='n')
 
-    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha", width=20, command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
+    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha", width=20, command=lambda: cadastrarNovaSenhaArea(resultado, listbox_senhas))
     button_criarNovaSenha.grid(row=0, column=0, padx=5, pady=5, sticky='ew')
 
     button_excluirSenha = tk.Button(frame_botoes, text="Excluir Senha", width=20, command=lambda: ExcluirSenha(listbox_senhas, usuario))
@@ -121,6 +153,9 @@ def afterLogin(usuario):
 
     button_editarSenha = tk.Button(frame_botoes, text="Editar Senha", width=20, command=lambda: EditarSenhaArea(listbox_senhas, usuario))
     button_editarSenha.grid(row=2, column=0, padx=5, pady=5, sticky='ew')
+    
+    button_importarSenha = tk.Button(frame_botoes, text="Importar Senhas", width=20, command=lambda:uploadSCV(iduser, listbox_senhas, resultado))
+    button_importarSenha.grid(row=3, column=0, padx=5, pady=5, sticky='ew')
 
     aba_senhas.grid_columnconfigure(0, weight=1)
     aba_senhas.grid_rowconfigure(0, weight=1)
@@ -130,34 +165,51 @@ def afterLogin(usuario):
     aba_haveibeenpwned = ttk.Frame(notebook) 
     notebook.add(aba_haveibeenpwned, text='Have I Been Pwned')
     
+    # rows e columns p  aba_haveibeenpwned
+    aba_haveibeenpwned.grid_rowconfigure(0, weight=1)
+    aba_haveibeenpwned.grid_rowconfigure(1, weight=3)
+    aba_haveibeenpwned.grid_rowconfigure(2, weight=3)
+
+    aba_haveibeenpwned.grid_columnconfigure(0, weight=2)
+    aba_haveibeenpwned.grid_columnconfigure(1, weight=2)
+
     label_senha = tk.Label(aba_haveibeenpwned, text="Senha:", bg="#f0f0f0")
-    label_senha.pack(pady=(20, 5))  
+    label_senha.grid(row=1, column=0, pady=(45, 0), sticky='e')  
+
+    entry_senhahaveibeenpwned = tk.Entry(aba_haveibeenpwned, show="*", width=30)
+    entry_senhahaveibeenpwned.grid(row=1, column=1, pady=(45, 0), sticky='w')  
+
+    button_haveibeenpwned = tk.Button(aba_haveibeenpwned, text="Checar se senha já foi vazada", command=lambda: hibp.haveibeenpwned(entry_senhahaveibeenpwned.get()), width=25, bg="#4CAF50", fg="white", font=('Arial', 12))
+    button_haveibeenpwned.grid(row=2, column=0, columnspan=2, pady=(20, 20)) 
+
     
-    entry_senhahaveibeenpwned = tk.Entry(aba_haveibeenpwned)
-    entry_senhahaveibeenpwned.pack(pady=(0, 20))  
-    
-    button_haveibeenpwned = tk.Button(aba_haveibeenpwned, text="Checar se senha ja foi vazada", command=lambda: hibp.haveibeenpwned(entry_senhahaveibeenpwned.get()))
-    button_haveibeenpwned.pack(pady=(20, 20))
-    
-    # Parte para a área do gerador de senhas
+    # parte gerador de senhas
     aba_geradordesenhas = ttk.Frame(notebook)
     notebook.add(aba_geradordesenhas, text='Gerador De Senhas')
 
-    label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
-    label_caracteres.pack(pady=(20, 5))
+    aba_geradordesenhas.grid_rowconfigure(0, weight=1)
+    aba_geradordesenhas.grid_rowconfigure(1, weight=3)
+    aba_geradordesenhas.grid_rowconfigure(2, weight=1)
+    aba_geradordesenhas.grid_rowconfigure(3, weight=1)
 
-    entry_geradordesenhas = tk.Entry(aba_geradordesenhas)
-    entry_geradordesenhas.pack(pady=(0, 20))
+    aba_geradordesenhas.grid_columnconfigure(0, weight=1)
+    aba_geradordesenhas.grid_columnconfigure(1, weight=1)
+
+    label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
+    label_caracteres.grid(row=1, column=0, pady=(20, 5), sticky='e') 
+
+    entry_geradordesenhas = tk.Entry(aba_geradordesenhas, width=30)
+    entry_geradordesenhas.grid(row=1, column=1, pady=(20, 5), sticky='w')
 
     label_resultado = tk.Label(aba_geradordesenhas, text="Senha Gerada:", bg="#f0f0f0")
-    label_resultado.pack(pady=(0, 20))
+    label_resultado.grid(row=2, column=0, pady=(10, 5), sticky='e')
 
-    text_area_gerada = tk.Text(aba_geradordesenhas, height=1, width=20, bg="#ffffff", bd=3, relief="sunken", wrap=tk.WORD)
-    text_area_gerada.pack(pady=20)
+    text_area_gerada = tk.Text(aba_geradordesenhas, height=1, width=20, bg="#ffffff", relief="sunken", wrap=tk.WORD)
+    text_area_gerada.grid(row=2, column=1, pady=(10, 20), sticky='w') 
     text_area_gerada.config(state='normal')
 
-    button_gerarsenha = tk.Button(aba_geradordesenhas, text="Gerar Senha", command=lambda: gerar_senha(entry_geradordesenhas.get(), text_area_gerada))
-    button_gerarsenha.pack(pady=(20, 20))
+    button_gerarsenha = tk.Button(aba_geradordesenhas, text="Gerar Senha", command=lambda: gerar_senha(entry_geradordesenhas.get(), text_area_gerada), width=15, bg="#4CAF50", fg="white", font=('Arial', 12))
+    button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20)) 
     
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):
@@ -318,17 +370,17 @@ def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName, resultado, 
         messagebox.showerror("CadastroSenha", "Formato da senha incorreta!")
     
 
-aba_cadastro.grid_rowconfigure(1, weight=1) # cria row's e column's pra tipo, gerar um grid
-aba_login.grid_rowconfigure(1, weight=1)
-aba_cadastro.grid_rowconfigure(2, weight=1)
-aba_login.grid_rowconfigure(2, weight=1)
-aba_cadastro.grid_rowconfigure(3, weight=1)
-aba_login.grid_rowconfigure(3, weight=1)
+aba_cadastro.grid_rowconfigure(1, weight=3) # cria row's e column's pra tipo, gerar um grid
+aba_login.grid_rowconfigure(1, weight=3)
+aba_cadastro.grid_rowconfigure(2, weight=3)
+aba_login.grid_rowconfigure(2, weight=3)
+aba_cadastro.grid_rowconfigure(3, weight=3)
+aba_login.grid_rowconfigure(3, weight=3)
 
-aba_cadastro.columnconfigure(0, weight=1)
+aba_cadastro.columnconfigure(0, weight=2)
 aba_cadastro.columnconfigure(1, weight=2)
 
-aba_login.columnconfigure(0, weight=1)
+aba_login.columnconfigure(0, weight=2)
 aba_login.columnconfigure(1, weight=2)
 
 # pra poupar trabalho
@@ -337,34 +389,34 @@ entry_style = {'font': ('Arial', 12)}
 
 #cadstro
 label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:", bg="#f0f0f0")
-label_usuario_cadastro.grid(row=0, column=0, pady=(5, 5), sticky='e')
+label_usuario_cadastro.grid(row=2, column=0, pady=(0, 25), sticky='e')
 
 entry_usuario_cadastro = tk.Entry(aba_cadastro, width=30)  
-entry_usuario_cadastro.grid(row=0, column=1, pady=(5, 5), sticky='w')
+entry_usuario_cadastro.grid(row=2, column=1, pady=(0, 25), sticky='w')
 
 label_senha_cadastro = tk.Label(aba_cadastro, text="Senha:", bg="#f0f0f0")
-label_senha_cadastro.grid(row=1, column=0, pady=(5, 5), sticky='e')
+label_senha_cadastro.grid(row=2, column=0, pady=(45,0), sticky='e')
 
 entry_senha_cadastro = tk.Entry(aba_cadastro, show="*", width=30)  
-entry_senha_cadastro.grid(row=1, column=1, pady=(5, 5), sticky='w')
+entry_senha_cadastro.grid(row=2, column=1, pady=(45, 0), sticky='w')
 
 button_cadastrar = tk.Button(aba_cadastro, text="Cadastrar", command=cadastrar, width=15, bg="#4CAF50", fg="white", font=('Arial', 12))
-button_cadastrar.grid(row=2, column=0, columnspan=2, pady=(20, 20))
+button_cadastrar.grid(row=3, column=0, columnspan=2, pady=(20, 20))
 
 #logi
 label_usuario_login = tk.Label(aba_login, text="Usuário:")
-label_usuario_login.grid(row=0, column=0, pady=(5, 5), sticky='e')
+label_usuario_login.grid(row=2, column=0, pady=(0, 25), sticky='e')
 
 entry_usuario_login = tk.Entry(aba_login, width=30)  
-entry_usuario_login.grid(row=0, column=1, pady=(5, 5), sticky='w')
+entry_usuario_login.grid(row=2, column=1, pady=(0, 25), sticky='w')
 
 label_senha_login = tk.Label(aba_login, text="Senha:")
-label_senha_login.grid(row=1, column=0, pady=(5, 5), sticky='e')
+label_senha_login.grid(row=2, column=0, pady=(45, 0), sticky='e')
 
 entry_senha_login = tk.Entry(aba_login, show="*", width=30)  
-entry_senha_login.grid(row=1, column=1, pady=(5, 5), sticky='w') 
+entry_senha_login.grid(row=2, column=1, pady=(45, 0), sticky='w') 
 
 button_logar = tk.Button(aba_login, text="Login", command=logar, width=15, bg="#2196F3", fg="white", font=('Arial', 12))
-button_logar.grid(row=2, column=0, columnspan=2, pady=(20, 20))
+button_logar.grid(row=3, column=0, columnspan=2, pady=(20, 20))
 
 root.mainloop()
