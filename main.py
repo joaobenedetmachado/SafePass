@@ -6,6 +6,9 @@ import utils.haveibeenpwned as hibp
 import utils.geradordesenha as gds    
 import utils.geolocal as ip
 import pandas as pd
+import webbrowser
+import csv
+import os
 
 
 DB_HOST = "127.0.0.1"
@@ -47,18 +50,68 @@ aba_cadastro.pack(fill='both', expand=True)
 notebook.add(aba_login, text='Login')
 notebook.add(aba_cadastro, text='Cadastro')
 
-def uploadSCV(iduser, text_area, resultado):
+def OpenSite(listbox_senhas):
+    listselecionado = listbox_senhas.curselection()
+    if not listselecionado:
+        messagebox.showwarning("Aviso", "Selecione uma senha para editar.")
+        return
+        
+    item = listbox_senhas.get(listselecionado)
+    print(item)
+    parts = item.split()
+    site = parts[3].lower()
+    print(site)
+    if 'http' in site and '.com' in site:
+        webbrowser.open(site)
+    elif 'http://www' in site and ".com" not in site:
+        webbrowser.open(site + '.com')
+    elif "http" not in site and ".com" not in site:
+        urlCorreto = 'http://www.' + site + ".com"
+        webbrowser.open(urlCorreto)
+        print(urlCorreto)
+    elif  'http' not in site:
+        urlCorreto = 'http://' + site
+        print(urlCorreto)
+        webbrowser.open(urlCorreto)
+    
+def ExportCSV(iduser):
+    caminho_diretorio = filedialog.askdirectory(title="Selecione um diretório") # pede o diretorio
+    if caminho_diretorio:  
+        caminho_arquivo = os.path.join(caminho_diretorio, 'senhas.csv') # coloca esse senhas la
+        print(f"Caminho do arquivo: {caminho_arquivo}")
+
+        comandoSQL = f'SELECT passwordhash, sitename from passwords where userid = {iduser}'
+        cursor.execute(comandoSQL)
+        resultado = cursor.fetchall()
+        
+        passwords = [line[0] for line in resultado]
+        sitename = [line[1] for line in resultado]
+
+        with open(caminho_arquivo, mode='w', newline='', encoding='utf-8') as csv_file: # abre o arquivo e edita ele
+            writer = csv.writer(csv_file)
+            writer.writerow(['Site', 'Senha'])  
+
+            for encrypted_password, site in zip(passwords, sitename):
+                decrypted_password = enc.descriptografar(encrypted_password) 
+                writer.writerow([site, decrypted_password]) 
+    else:
+        print("Nenhum diretório selecionado.")
+        
+    messagebox.showwarning("Aviso", f"Senhas exportadas com sucesso para '{caminho_arquivo}'.")
+
+
+def uploadSCV(iduser, text_area, resultado): 
     global df
     file_path = filedialog.askopenfilename(filetypes=[("Arquivos CSV", "*.csv")])
 
     if file_path:
-        df = pd.read_csv(file_path, sep=',', header=None)  # Adicionando header=None
+        df = pd.read_csv(file_path, sep=',', header=None) 
         print("Arquivo carregado com sucesso!")
         print(df)
 
         if df.empty:
             print("O arquivo CSV está vazio.")
-            return  # Retorna se o DataFrame estiver vazio
+            return  # retorna se o DataFrame estiver vazio
     
         for i, r in df.iterrows():
             password = r[0]
@@ -73,9 +126,12 @@ def uploadSCV(iduser, text_area, resultado):
                 cursor.execute(comandoSQL)
             except Exception as e:
                 print(f"Erro ao inserir dados: {e}")
+                messagebox.showwarning("Importar Dados", "Erro ao ler arquivo CSV!.")
+        messagebox.showwarning("Importar Dados", "Arquivo CSV lido com sucesso!.")
 
-        DBconexao.commit()  # Commit após inserir todos os dados
+        DBconexao.commit()
         recarregar(resultado, text_area)
+        
 # funcao de cadastro
 def cadastrar():
     usuario = entry_usuario_cadastro.get()
@@ -145,7 +201,7 @@ def afterLogin(usuario):
     frame_botoes = tk.Frame(aba_senhas)
     frame_botoes.grid(row=0, column=1, padx=10, pady=10, sticky='n')
 
-    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha", width=20, command=lambda: cadastrarNovaSenhaArea(resultado, listbox_senhas))
+    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha", width=20, command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
     button_criarNovaSenha.grid(row=0, column=0, padx=5, pady=5, sticky='ew')
 
     button_excluirSenha = tk.Button(frame_botoes, text="Excluir Senha", width=20, command=lambda: ExcluirSenha(listbox_senhas, usuario))
@@ -154,8 +210,16 @@ def afterLogin(usuario):
     button_editarSenha = tk.Button(frame_botoes, text="Editar Senha", width=20, command=lambda: EditarSenhaArea(listbox_senhas, usuario))
     button_editarSenha.grid(row=2, column=0, padx=5, pady=5, sticky='ew')
     
-    button_importarSenha = tk.Button(frame_botoes, text="Importar Senhas", width=20, command=lambda:uploadSCV(iduser, listbox_senhas, resultado))
-    button_importarSenha.grid(row=3, column=0, padx=5, pady=5, sticky='ew')
+    button_importarSenha = tk.Button(frame_botoes, text="Importar Senhas", width=20, command=lambda: uploadSCV(iduser, listbox_senhas, resultado))
+    button_importarSenha.grid(row=3, column=0, padx=5, pady=(110, 5), sticky='ew')
+
+    # Botão Exportar Senhas
+    button_exportarSenhas = tk.Button(frame_botoes, text="Exportar Senhas", width=20, command=lambda: ExportCSV(iduser))
+    button_exportarSenhas.grid(row=4, column=0, padx=5, pady=(5, 5), sticky='ew')
+
+    # Botão Abrir Site
+    button_abrirSite = tk.Button(frame_botoes, text="Abrir Site", width=20, command=lambda: OpenSite(listbox_senhas))
+    button_abrirSite.grid(row=5, column=0, padx=5, pady=(5, 10), sticky='ew')
 
     aba_senhas.grid_columnconfigure(0, weight=1)
     aba_senhas.grid_rowconfigure(0, weight=1)

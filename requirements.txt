@@ -1,5 +1,7 @@
-bcrypt
 cryptography
 requests
 pymysql
+bcrypt
 pandas
+csv
+os
