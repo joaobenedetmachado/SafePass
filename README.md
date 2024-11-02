@@ -3,6 +3,9 @@
 **Vaultify** é um gerenciador de senhas seguro e intuitivo, desenvolvido em Python. Ele oferece uma interface gráfica amigável e utiliza um banco de dados para armazenar informações de login, garantindo que suas senhas sejam mantidas em segurança através de hashing.
 
 ---
+<img src="https://i.imgur.com/3KNw8JI.png" />
+
+---
 
 ## 📚 Índice
 
