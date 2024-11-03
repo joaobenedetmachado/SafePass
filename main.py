@@ -96,7 +96,6 @@ def ExportCSV(iduser):
                 writer.writerow([site, decrypted_password]) 
     else:
         print("Nenhum diretório selecionado.")
-        
     messagebox.showwarning("Aviso", f"Senhas exportadas com sucesso para '{caminho_arquivo}'.")
 
 
@@ -201,23 +200,23 @@ def afterLogin(usuario):
     frame_botoes = tk.Frame(aba_senhas)
     frame_botoes.grid(row=0, column=1, padx=10, pady=10, sticky='n')
 
-    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha", width=20, command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
+    button_criarNovaSenha = tk.Button(frame_botoes, text="Cadastrar Nova Senha",fg="white", width=20, bg='#038f36', command=lambda: cadastrarNovaSenhaArea(iduser, resultado, listbox_senhas))
     button_criarNovaSenha.grid(row=0, column=0, padx=5, pady=5, sticky='ew')
 
-    button_excluirSenha = tk.Button(frame_botoes, text="Excluir Senha", width=20, command=lambda: ExcluirSenha(listbox_senhas, usuario))
+    button_excluirSenha = tk.Button(frame_botoes, text="Excluir Senha", width=20,fg="white" ,bg='#e03d3d', command=lambda:  ExcluirSenha(listbox_senhas, usuario))
     button_excluirSenha.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
 
-    button_editarSenha = tk.Button(frame_botoes, text="Editar Senha", width=20, command=lambda: EditarSenhaArea(listbox_senhas, usuario))
+    button_editarSenha = tk.Button(frame_botoes, text="Editar Senha", width=20, fg="white" ,bg='#099ceb' ,command=lambda: EditarSenhaArea(listbox_senhas, usuario))
     button_editarSenha.grid(row=2, column=0, padx=5, pady=5, sticky='ew')
     
     button_importarSenha = tk.Button(frame_botoes, text="Importar Senhas", width=20, command=lambda: uploadSCV(iduser, listbox_senhas, resultado))
     button_importarSenha.grid(row=3, column=0, padx=5, pady=(110, 5), sticky='ew')
 
-    # Botão Exportar Senhas
+    # botao exportar senahs
     button_exportarSenhas = tk.Button(frame_botoes, text="Exportar Senhas", width=20, command=lambda: ExportCSV(iduser))
     button_exportarSenhas.grid(row=4, column=0, padx=5, pady=(5, 5), sticky='ew')
 
-    # Botão Abrir Site
+    # button abrir o site selecioonado
     button_abrirSite = tk.Button(frame_botoes, text="Abrir Site", width=20, command=lambda: OpenSite(listbox_senhas))
     button_abrirSite.grid(row=5, column=0, padx=5, pady=(5, 10), sticky='ew')
 
@@ -260,20 +259,28 @@ def afterLogin(usuario):
     aba_geradordesenhas.grid_columnconfigure(1, weight=1)
 
     label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
-    label_caracteres.grid(row=1, column=0, pady=(20, 5), sticky='e') 
+    label_caracteres.grid(row=1, column=0, pady=(20, 5), sticky='e')
 
     entry_geradordesenhas = tk.Entry(aba_geradordesenhas, width=30)
     entry_geradordesenhas.grid(row=1, column=1, pady=(20, 5), sticky='w')
 
     label_resultado = tk.Label(aba_geradordesenhas, text="Senha Gerada:", bg="#f0f0f0")
-    label_resultado.grid(row=2, column=0, pady=(10, 5), sticky='e')
+    label_resultado.grid(row=2, column=0, pady=(10, 20), sticky='e')
 
     text_area_gerada = tk.Text(aba_geradordesenhas, height=1, width=20, bg="#ffffff", relief="sunken", wrap=tk.WORD)
-    text_area_gerada.grid(row=2, column=1, pady=(10, 20), sticky='w') 
-    text_area_gerada.config(state='normal')
+    text_area_gerada.grid(row=2, column=1, pady=(10, 20), sticky='w')
+    text_area_gerada.config(state='disabled')
 
-    button_gerarsenha = tk.Button(aba_geradordesenhas, text="Gerar Senha", command=lambda: gerar_senha(entry_geradordesenhas.get(), text_area_gerada), width=15, bg="#4CAF50", fg="white", font=('Arial', 12))
-    button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20)) 
+    button_gerarsenha = tk.Button(
+        aba_geradordesenhas, 
+        text="Gerar Senha", 
+        command=lambda: gerar_senha(entry_geradordesenhas.get(), text_area_gerada), 
+        width=15, 
+        bg="#4CAF50", 
+        fg="white", 
+        font=('Arial', 12)
+    )
+    button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20))
     
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):
@@ -329,8 +336,6 @@ def recarregar(resultado, listbox_senhas): # recarrega a listbox
                 listbox_senhas.insert(tk.END, f"Erro na descriptografia | {siteName}")
     else:
         listbox_senhas.insert(tk.END, "Nenhuma senha encontrada.")
-
-
 
 # func p cadastrar senha nova no db
 def cadastrarNovaSenhaArea(iduser, resultado, text_area):
