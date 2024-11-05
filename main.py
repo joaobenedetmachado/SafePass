@@ -32,7 +32,7 @@ root = ttkb.Window(themename="superhero")
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
-# root.iconbitmap("./assets/logo.ico") #icone da pagina
+root.iconbitmap("./assets/logo.ico") #icone da pagina
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
