@@ -1,5 +1,7 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, filedialog
+from tkinter import ttk
+import ttkbootstrap as ttkb 
+from tkinter import ttk, messagebox, filedialog
 import mysql.connector
 import utils.encrypt as enc
 import utils.haveibeenpwned as hibp
@@ -13,26 +15,24 @@ import os
 
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
-DB_PASSWORD = "123123123"
+DB_PASSWORD = ""
 DB_DATABASE = "vaultify"
 
 DBconexao = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
     password=DB_PASSWORD,
-    database=DB_DATABASE,
-    port=3307
+    database=DB_DATABASE
 )
 
 cursor = DBconexao.cursor()
 
 
-root = tk.Tk()
+root = ttkb.Window(themename="superhero")
 root.title("Cadastro e Login")
 root.geometry("600x400")
-root.configure(bg="#f0f0f0")  
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
-root.iconbitmap("./assets/logo.ico") #icone da pagina
+# root.iconbitmap("./assets/logo.ico") #icone da pagina
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
@@ -185,7 +185,7 @@ def afterLogin(usuario):
     aba_senhas.columnconfigure(0, weight=1)  # col para label e área de texto
     aba_senhas.columnconfigure(1, weight=0)  # col p o botao
     
-    listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20, activestyle="none")
+    listbox_senhas = tk.Listbox(aba_senhas, width=50, height=20, activestyle="none", font=('Arial', 12))
     listbox_senhas.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
     
 
@@ -210,7 +210,7 @@ def afterLogin(usuario):
     button_editarSenha.grid(row=2, column=0, padx=5, pady=5, sticky='ew')
     
     button_importarSenha = tk.Button(frame_botoes, text="Importar Senhas", width=20, command=lambda: uploadSCV(iduser, listbox_senhas, resultado))
-    button_importarSenha.grid(row=3, column=0, padx=5, pady=(110, 5), sticky='ew')
+    button_importarSenha.grid(row=3, column=0, padx=5, pady=(140, 5), sticky='ew')
 
     # botao exportar senahs
     button_exportarSenhas = tk.Button(frame_botoes, text="Exportar Senhas", width=20, command=lambda: ExportCSV(iduser))
@@ -343,12 +343,12 @@ def cadastrarNovaSenhaArea(iduser, resultado, text_area):
     janelaCriarSenha.title("Criar Senha")
     janelaCriarSenha.geometry("300x300")
     
-    label_senha = tk.Label(janelaCriarSenha, text="Senha:", bg="#f0f0f0")
+    label_senha = tk.Label(janelaCriarSenha, text="Senha:")
     label_senha.pack(pady=(20, 5))  
     entry_senha = tk.Entry(janelaCriarSenha)
     entry_senha.pack(pady=(0, 20))  
     
-    label_sitename = tk.Label(janelaCriarSenha, text="Site:", bg="#f0f0f0")
+    label_sitename = tk.Label(janelaCriarSenha, text="Site:")
     label_sitename.pack(pady=(20, 5))  
     entry_sitename = tk.Entry(janelaCriarSenha)
     entry_sitename.pack(pady=(0, 20))  
@@ -452,24 +452,21 @@ aba_cadastro.columnconfigure(1, weight=2)
 aba_login.columnconfigure(0, weight=2)
 aba_login.columnconfigure(1, weight=2)
 
-# pra poupar trabalho
-label_style = {'bg': "#f0f0f0", 'font': ('Arial', 12)}
-entry_style = {'font': ('Arial', 12)}
 
 #cadstro
-label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:", bg="#f0f0f0")
+label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:")
 label_usuario_cadastro.grid(row=2, column=0, pady=(0, 25), sticky='e')
 
 entry_usuario_cadastro = tk.Entry(aba_cadastro, width=30)  
 entry_usuario_cadastro.grid(row=2, column=1, pady=(0, 25), sticky='w')
 
-label_senha_cadastro = tk.Label(aba_cadastro, text="Senha:", bg="#f0f0f0")
+label_senha_cadastro = tk.Label(aba_cadastro, text="Senha:")
 label_senha_cadastro.grid(row=2, column=0, pady=(45,0), sticky='e')
 
 entry_senha_cadastro = tk.Entry(aba_cadastro, show="*", width=30)  
 entry_senha_cadastro.grid(row=2, column=1, pady=(45, 0), sticky='w')
 
-button_cadastrar = tk.Button(aba_cadastro, text="Cadastrar", command=cadastrar, width=15, bg="#4CAF50", fg="white", font=('Arial', 12))
+button_cadastrar = tk.Button(aba_cadastro, text="Cadastrar", command=cadastrar, width=15, font=('Arial', 12))
 button_cadastrar.grid(row=3, column=0, columnspan=2, pady=(20, 20))
 
 #logi
@@ -485,7 +482,7 @@ label_senha_login.grid(row=2, column=0, pady=(45, 0), sticky='e')
 entry_senha_login = tk.Entry(aba_login, show="*", width=30)  
 entry_senha_login.grid(row=2, column=1, pady=(45, 0), sticky='w') 
 
-button_logar = tk.Button(aba_login, text="Login", command=logar, width=15, bg="#2196F3", fg="white", font=('Arial', 12))
+button_logar = tk.Button(aba_login, text="Login", command=logar, width=15, font=('Arial', 12))
 button_logar.grid(row=3, column=0, columnspan=2, pady=(20, 20))
 
 root.mainloop()

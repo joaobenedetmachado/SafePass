@@ -3,5 +3,6 @@ requests
 pymysql
 bcrypt
 pandas
+numpy
 csv
 os
