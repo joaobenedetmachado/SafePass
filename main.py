@@ -32,7 +32,7 @@ root = ttkb.Window(themename="darkly")
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
-root.iconbitmap("./assets/logo.ico") #icone da pagina
+# root.iconbitmap('./assets/logo.ico') #icone da pagina
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
@@ -50,17 +50,17 @@ aba_cadastro.pack(fill='both', expand=True)
 notebook.add(aba_login, text='Login')
 notebook.add(aba_cadastro, text='Cadastro')
 
-def OpenSite(listbox_senhas):
+def OpenSite(listbox_senhas): # ele pega a linha selecionada
     listselecionado = listbox_senhas.curselection()
     if not listselecionado:
         messagebox.showwarning("Aviso", "Selecione uma senha para editar.")
         return
         
-    item = listbox_senhas.get(listselecionado)
+    item = listbox_senhas.get(listselecionado) # separa e coloca numa lista
     print(item)
     parts = item.split()
     site = parts[3].lower()
-    print(site)
+    print(site) # ai a partir ele ve se tem as coisa que precisa pra ser um url ou nao
     if 'http' in site and '.com' in site:
         webbrowser.open(site)
     elif 'http://www' in site and ".com" not in site:
@@ -133,10 +133,10 @@ def uploadSCV(iduser, text_area, resultado):
         
 # funcao de cadastro
 def cadastrar():
-    usuario = entry_usuario_cadastro.get()
+    usuario = entry_usuario_cadastro.get() # pega os valores dos entrys
     senha = entry_senha_cadastro.get()
     
-    if usuario and senha:
+    if usuario and senha: # se nao tiverem vazios:
         comandoSQL = "SELECT * FROM users"
         cursor.execute(comandoSQL)
         resultado = cursor.fetchall()
@@ -151,33 +151,33 @@ def cadastrar():
     else:
         messagebox.showwarning("Cadastro", "Por favor, preencha todos os campos.")
 
-def atualizar_label(valor, label_valor):
+def atualizar_label(valor, label_valor): # pra atualizar o label pra ver quantos caracteres o range pegou
     label_valor.config(text=valor)
 
 # funcao de login
 def logar():
-    usuario = entry_usuario_login.get()
+    usuario = entry_usuario_login.get() # pegar os valores dos entrys
     senha = entry_senha_login.get()
     
-    if usuario and senha:
+    if usuario and senha: # se nao forem nulos: 
         comandoSQL = f"SELECT * FROM users WHERE nome = '{usuario}' AND password = '{senha}'"
         cursor.execute(comandoSQL)
-        resultado = cursor.fetchone()
+        resultado = cursor.fetchone() # diferente to fetchall, pega so um valor, o primeiro no caso
         if resultado:
             messagebox.showinfo("Login", "Login realizado com sucesso!")
             afterLogin(usuario)
-        else:
+        else: # mensagem de erro: 
             messagebox.showerror("Login", "Nome de usuário ou senha incorretos.")
     else:
         messagebox.showwarning("Login", "Por favor, preencha todos os campos.")
 
 # funcao apos o login
 def afterLogin(usuario):
-    root.title(f"{usuario} | {ip.pegarIPCidade()}")
-    notebook.forget(aba_cadastro)
-    notebook.forget(aba_login)
+    root.title(f"{usuario} | {ip.pegarIPCidade()}") # pega o nome do user o da cidade e coloca como titulo da pagina
+    notebook.forget(aba_cadastro) # esquece / deleta a aba de login e cadastro
+    notebook.forget(aba_login) # botao de deslogar para excluir as abas e "lembrar" de outras
     button_deslogar = tk.Button(root, text="Deslogar", command=lambda: deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar))
-    button_deslogar.place(x=522, y=10)
+    button_deslogar.place(x=522, y=10) # gambiarra pra ficar certinho
         
     aba_senhas = ttk.Frame(notebook) 
     notebook.add(aba_senhas, text='Senhas')
@@ -192,7 +192,7 @@ def afterLogin(usuario):
     listbox_senhas.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
     
 
-    comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'"
+    comandoSQL = f"SELECT idusers FROM users WHERE nome = '{usuario}'" # pega o id do user a partir do seu nome/userna,e
     cursor.execute(comandoSQL)
     resultado = cursor.fetchone()
     iduser = resultado[0]
@@ -232,7 +232,7 @@ def afterLogin(usuario):
     notebook.add(aba_haveibeenpwned, text='Have I Been Pwned')
     
     # rows e columns p  aba_haveibeenpwned
-    aba_haveibeenpwned.grid_rowconfigure(0, weight=1)
+    aba_haveibeenpwned.grid_rowconfigure(0, weight=1) # ele cria tres colunas verticais e duas horizontais
     aba_haveibeenpwned.grid_rowconfigure(1, weight=3)
     aba_haveibeenpwned.grid_rowconfigure(2, weight=3)
 
@@ -257,7 +257,7 @@ def afterLogin(usuario):
     notebook.add(aba_geradordesenhas, text='Gerador De Senhas')
 
     # Configuração de linhas e colunas
-    aba_geradordesenhas.grid_rowconfigure(0, weight=1)
+    aba_geradordesenhas.grid_rowconfigure(0, weight=1) # 5 colunas horizontais e 3 verticais
     aba_geradordesenhas.grid_rowconfigure(1, weight=3)
     aba_geradordesenhas.grid_rowconfigure(2, weight=1)
     aba_geradordesenhas.grid_rowconfigure(3, weight=1)
@@ -269,10 +269,10 @@ def afterLogin(usuario):
     label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
     label_caracteres.grid(row=1, column=0, pady=(20, 5), padx=(100,0), sticky='e')
 
-    scale_caracteres = tk.Scale(aba_geradordesenhas, from_=1, to=30, orient='horizontal', command=lambda valor: atualizar_label(valor, label_valor), length=100)
+    scale_caracteres = tk.Scale(aba_geradordesenhas, from_=7, to=30, orient='horizontal', command=lambda valor: atualizar_label(valor, label_valor), length=100)
     scale_caracteres.grid(row=1, column=1, pady=(20, 5), sticky='ew') 
 
-    label_valor = tk.Label(aba_geradordesenhas, text="1", bg="#f0f0f0") 
+    label_valor = tk.Label(aba_geradordesenhas, text="7", bg="#f0f0f0") 
     label_valor.grid(row=1, column=2, pady=(20, 5), padx=(0,100),sticky='w')
 
     text_area_gerada = tk.Text(aba_geradordesenhas, height=1, width=20, bg="#ffffff", relief="sunken", wrap=tk.WORD)
@@ -361,26 +361,26 @@ def cadastrarNovaSenhaArea(iduser, resultado, text_area):
     button_criarNovaSenha = tk.Button(janelaCriarSenha, text="Cadastrar Nova Senha", command=lambda: CadastrarNovaSenha(janelaCriarSenha, iduser, enc.criptografar(entry_senha.get()), (entry_sitename.get()).title(), resultado, text_area))
     button_criarNovaSenha.pack(pady=(20, 20))
     
-def EditarSenhaArea(listbox_senhas, usuario):
+def EditarSenhaArea(listbox_senhas, usuario): # pego a linha selecionada
     listselecionado = listbox_senhas.curselection()
     if not listselecionado:
-        messagebox.showwarning("Aviso", "Selecione uma senha para editar.")
+        messagebox.showwarning("Aviso", "Selecione uma senha para editar.") # aviso caso nao tenha
         return
     
-    item = listbox_senhas.get(listselecionado)
+    item = listbox_senhas.get(listselecionado) # pega os valores dentro
     print(item)
-    parts = item.split()
-    id = int(parts[1])    
-    senha = parts[2]       
-    site = parts[3] 
+    parts = item.split() # divide pelos espacos e transforma-os em uma lista
+    id = int(parts[1]) # o primeiro index é um id
+    senha = parts[2] # o segundo a senha
+    site = parts[3] # o terceiro o site
     print(id)
     
     #vo fazxer uma janela pra colocar o bgl pq é melhor
-    dialog = tk.Toplevel()
+    dialog = tk.Toplevel() # cria uma janela toplevel (que fica acima das outras, sem que ela precisa ser excluida)
     dialog.title("Editar Senha")
     dialog.geometry("400x225")
     
-    tk.Label(dialog, text="Novo nome do site:").pack(pady=10)
+    tk.Label(dialog, text="Novo nome do site:").pack(pady=10) 
     entry_site = tk.Entry(dialog, width=50)
     entry_site.insert(0, site) 
     entry_site.pack(pady=5)
@@ -390,11 +390,11 @@ def EditarSenhaArea(listbox_senhas, usuario):
     entry_senha.insert(0, senha) 
     entry_senha.pack(pady=5)
         
-    button_criarNovaSenha = tk.Button(dialog, text="Cadastrar Nova Senha", command=lambda: EditarSenha(entry_senha.get(), entry_site.get(), id, usuario, listbox_senhas))
-    button_criarNovaSenha.pack(pady=(20, 20))         
+    button_criarNovaSenha = tk.Button(dialog, text="Cadastrar Nova Senha", command=lambda: EditarSenha(entry_senha.get(), entry_site.get(), id, usuario, listbox_senhas)) # envia pra funcao os valores
+    button_criarNovaSenha.pack(pady=(20, 20)) 
     
        
-def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas):
+def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas): # encripta e manda pro DB
     comandoSQL=f'UPDATE passwords SET passwordhash = "{enc.criptografar(novaSenha)}", sitename="{novoSite}" where idpassword = {id}'
     cursor.execute(comandoSQL)
     DBconexao.commit()
@@ -407,20 +407,20 @@ def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas):
     
     
 def ExcluirSenha(listbox_senhas, usuario):
-    listselecionado = listbox_senhas.curselection()
+    listselecionado = listbox_senhas.curselection() # pega o selecionado e caso nao tenha nenhum ele mostra o erro numa janelinha
     if not listselecionado:
         messagebox.showwarning("Aviso", "sem senha selecionada para excluir.")
         return
 
     item = listbox_senhas.get(listselecionado)
-    parts = item.split()
-    id = int(parts[1])    
+    parts = item.split() # splita eles a partir dos espacos
+    id = int(parts[1])  # pega o id
     print(id)
     
     confirm = messagebox.askyesno("confirmar delete", f"desejas excluir a senha do ID {id}?")
-    if not confirm:
+    if not confirm: # se o user apartar em NO ele fecha a janela
         return
-    else: 
+    else: # se dar certo ele exclui pelo id
         comandosql = f'Delete from passwords where idpassword = {id}'
         cursor.execute(comandosql)
         DBconexao.commit()
