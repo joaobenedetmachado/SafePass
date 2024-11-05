@@ -28,7 +28,7 @@ DBconexao = mysql.connector.connect(
 cursor = DBconexao.cursor()
 
 
-root = ttkb.Window(themename="superhero")
+root = ttkb.Window(themename="darkly")
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
@@ -151,6 +151,9 @@ def cadastrar():
     else:
         messagebox.showwarning("Cadastro", "Por favor, preencha todos os campos.")
 
+def atualizar_label(valor, label_valor):
+    label_valor.config(text=valor)
+
 # funcao de login
 def logar():
     usuario = entry_usuario_login.get()
@@ -245,42 +248,45 @@ def afterLogin(usuario):
     button_haveibeenpwned = tk.Button(aba_haveibeenpwned, text="Checar se senha já foi vazada", command=lambda: hibp.haveibeenpwned(entry_senhahaveibeenpwned.get()), width=25, bg="#4CAF50", fg="white", font=('Arial', 12))
     button_haveibeenpwned.grid(row=2, column=0, columnspan=2, pady=(20, 20)) 
 
-    
+
+    def atualizar_label(valor, label_valor):
+        label_valor.config(text=valor)
+
     # parte gerador de senhas
     aba_geradordesenhas = ttk.Frame(notebook)
     notebook.add(aba_geradordesenhas, text='Gerador De Senhas')
 
+    # Configuração de linhas e colunas
     aba_geradordesenhas.grid_rowconfigure(0, weight=1)
     aba_geradordesenhas.grid_rowconfigure(1, weight=3)
     aba_geradordesenhas.grid_rowconfigure(2, weight=1)
     aba_geradordesenhas.grid_rowconfigure(3, weight=1)
-
-    aba_geradordesenhas.grid_columnconfigure(0, weight=1)
-    aba_geradordesenhas.grid_columnconfigure(1, weight=1)
-
+    
+    aba_geradordesenhas.grid_columnconfigure(0, weight=0)  
+    aba_geradordesenhas.grid_columnconfigure(1, weight=1)  
+    aba_geradordesenhas.grid_columnconfigure(2, weight=0)  
+    
     label_caracteres = tk.Label(aba_geradordesenhas, text="Quantidade:", bg="#f0f0f0")
-    label_caracteres.grid(row=1, column=0, pady=(20, 5), sticky='e')
+    label_caracteres.grid(row=1, column=0, pady=(20, 5), padx=(100,0), sticky='e')
 
-    entry_geradordesenhas = tk.Entry(aba_geradordesenhas, width=30)
-    entry_geradordesenhas.grid(row=1, column=1, pady=(20, 5), sticky='w')
+    scale_caracteres = tk.Scale(aba_geradordesenhas, from_=1, to=30, orient='horizontal', command=lambda valor: atualizar_label(valor, label_valor), length=100)
+    scale_caracteres.grid(row=1, column=1, pady=(20, 5), sticky='ew') 
 
-    label_resultado = tk.Label(aba_geradordesenhas, text="Senha Gerada:", bg="#f0f0f0")
-    label_resultado.grid(row=2, column=0, pady=(10, 20), sticky='e')
+    label_valor = tk.Label(aba_geradordesenhas, text="1", bg="#f0f0f0") 
+    label_valor.grid(row=1, column=2, pady=(20, 5), padx=(0,100),sticky='w')
 
     text_area_gerada = tk.Text(aba_geradordesenhas, height=1, width=20, bg="#ffffff", relief="sunken", wrap=tk.WORD)
-    text_area_gerada.grid(row=2, column=1, pady=(10, 20), sticky='w')
+    text_area_gerada.grid(row=2, column=0,columnspan=2, pady=(20, 20), padx=(0,95),sticky='ne')
     text_area_gerada.config(state='disabled')
 
     button_gerarsenha = tk.Button(
         aba_geradordesenhas, 
         text="Gerar Senha", 
-        command=lambda: gerar_senha(entry_geradordesenhas.get(), text_area_gerada), 
+        command=lambda: gerar_senha(scale_caracteres.get(), text_area_gerada), 
         width=15, 
-        bg="#4CAF50", 
-        fg="white", 
         font=('Arial', 12)
     )
-    button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20))
+    button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20), padx=(120,0))
     
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):

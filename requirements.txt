@@ -1,3 +1,4 @@
+ttkbootstrap
 cryptography
 requests
 pymysql
