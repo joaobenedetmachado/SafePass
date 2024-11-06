@@ -3,6 +3,7 @@ from tkinter import ttk
 import ttkbootstrap as ttkb 
 from tkinter import ttk, messagebox, filedialog
 import mysql.connector
+import datetime
 import utils.encrypt as enc
 import utils.haveibeenpwned as hibp
 import utils.geradordesenha as gds    
@@ -15,14 +16,15 @@ import os
 
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
-DB_PASSWORD = ""
+DB_PASSWORD = "123123123"
 DB_DATABASE = "vaultify"
 
 DBconexao = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
     password=DB_PASSWORD,
-    database=DB_DATABASE
+    database=DB_DATABASE,
+    port=3307
 )
 
 cursor = DBconexao.cursor()
@@ -97,6 +99,9 @@ def ExportCSV(iduser):
     else:
         print("Nenhum diretório selecionado.")
     messagebox.showwarning("Aviso", f"Senhas exportadas com sucesso para '{caminho_arquivo}'.")
+    logs = "Senhas exportadas"
+    salvar_logs(logs , listbox_logs)
+
 
 
 def uploadSCV(iduser, text_area, resultado): 
@@ -130,6 +135,8 @@ def uploadSCV(iduser, text_area, resultado):
 
         DBconexao.commit()
         recarregar(resultado, text_area)
+        logs = "Senhas importadas"
+        salvar_logs(logs, listbox_logs)
         
 # funcao de cadastro
 def cadastrar():
@@ -283,11 +290,37 @@ def afterLogin(usuario):
         aba_geradordesenhas, 
         text="Gerar Senha", 
         command=lambda: gerar_senha(scale_caracteres.get(), text_area_gerada), 
-        width=15, 
-        font=('Arial', 12)
+        width=12, 
     )
     button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20), padx=(120,0))
     
+    # parte pros log
+    aba_logs = ttk.Frame(notebook) 
+    notebook.add(aba_logs, text='Logs')
+    
+    frame_botoes = tk.Frame(aba_logs)
+    frame_botoes.grid(row=0, column=1, padx=10, pady=10, sticky='n')
+    
+    aba_logs.rowconfigure(0, weight=0)
+    aba_logs.rowconfigure(1, weight=1)
+    aba_logs.rowconfigure(2, weight=0)
+
+    aba_logs.columnconfigure(0, weight=1)
+    aba_logs.columnconfigure(1, weight=0)
+    
+    global listbox_logs
+    listbox_logs = tk.Listbox(aba_logs, width=50, height=20, activestyle="none")
+    listbox_logs.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+    listbox_logs.config(state='normal')
+
+    aba_logs.grid_columnconfigure(0, weight=1)
+    aba_logs.grid_rowconfigure(0, weight=1)
+    
+
+def salvar_logs(logs, listbox_logs):
+    log_text = f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: {logs}"
+    listbox_logs.insert(tk.END, log_text)
+        
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):
     root.title("Cadastro e Login") # ele volta ao titulo, 
@@ -394,7 +427,7 @@ def EditarSenhaArea(listbox_senhas, usuario): # pego a linha selecionada
     button_criarNovaSenha.pack(pady=(20, 20)) 
     
        
-def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas): # encripta e manda pro DB
+def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas):
     comandoSQL=f'UPDATE passwords SET passwordhash = "{enc.criptografar(novaSenha)}", sitename="{novoSite}" where idpassword = {id}'
     cursor.execute(comandoSQL)
     DBconexao.commit()
@@ -404,6 +437,8 @@ def EditarSenha(novaSenha, novoSite, id, usuario, listbox_senhas): # encripta e 
     resultado = cursor.fetchone()
     if resultado:
         recarregar(resultado, listbox_senhas)
+    logs = f" UPDATE | ID: {id} | Senha: {novaSenha} | Site: {novoSite}"
+    salvar_logs(logs, listbox_logs)  
     
     
 def ExcluirSenha(listbox_senhas, usuario):
@@ -416,6 +451,8 @@ def ExcluirSenha(listbox_senhas, usuario):
     parts = item.split() # splita eles a partir dos espacos
     id = int(parts[1])  # pega o id
     print(id)
+    logs = " DELETE | ID: {id} | Excluído"
+    salvar_logs(logs, listbox_logs) 
     
     confirm = messagebox.askyesno("confirmar delete", f"desejas excluir a senha do ID {id}?")
     if not confirm: # se o user apartar em NO ele fecha a janela
@@ -443,6 +480,8 @@ def CadastrarNovaSenha(janelaCriarSenha, iduser, password, siteName, resultado, 
         janelaCriarSenha.destroy()
     except ValueError:
         messagebox.showerror("CadastroSenha", "Formato da senha incorreta!")
+    logs = f"CADASTRO | ID: {iduser} | Senha: {enc.descriptografar(password)} | Site: {siteName}"
+    salvar_logs(logs, listbox_logs)
     
 
 aba_cadastro.grid_rowconfigure(1, weight=3) # cria row's e column's pra tipo, gerar um grid
