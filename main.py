@@ -3,13 +3,13 @@ from tkinter import ttk
 import ttkbootstrap as ttkb 
 from tkinter import ttk, messagebox, filedialog
 import mysql.connector
-import datetime
 import utils.encrypt as enc
 import utils.haveibeenpwned as hibp
 import utils.geradordesenha as gds    
 import utils.geolocal as ip
 import pandas as pd
 import webbrowser
+import datetime
 import csv
 import os
 
@@ -82,7 +82,7 @@ def ExportCSV(iduser):
         caminho_arquivo = os.path.join(caminho_diretorio, 'senhas.csv') # coloca esse senhas la
         print(f"Caminho do arquivo: {caminho_arquivo}")
 
-        comandoSQL = f'SELECT passwordhash, sitename from passwords where userid = {iduser}'
+        comandoSQL = f'SELECT passwordhash, sitename from passwords where userid = {iduser}' 
         cursor.execute(comandoSQL)
         resultado = cursor.fetchall()
         
@@ -90,12 +90,12 @@ def ExportCSV(iduser):
         sitename = [line[1] for line in resultado]
 
         with open(caminho_arquivo, mode='w', newline='', encoding='utf-8') as csv_file: # abre o arquivo e edita ele
-            writer = csv.writer(csv_file)
-            writer.writerow(['Site', 'Senha'])  
+            writer = csv.writer(csv_file) # escreve o arquivo
+            writer.writerow(['Site', 'Senha'])  # escreve o cabecalho
 
-            for encrypted_password, site in zip(passwords, sitename):
-                decrypted_password = enc.descriptografar(encrypted_password) 
-                writer.writerow([site, decrypted_password]) 
+            for encrypted_password, site in zip(passwords, sitename): # pega a senha e o site e coloca no csv 
+                decrypted_password = enc.descriptografar(encrypted_password) # descriptografa a senha 
+                writer.writerow([site, decrypted_password]) # escreve na linha o site e a senha
     else:
         print("Nenhum diretório selecionado.")
     messagebox.showwarning("Aviso", f"Senhas exportadas com sucesso para '{caminho_arquivo}'.")
@@ -256,8 +256,8 @@ def afterLogin(usuario):
     button_haveibeenpwned.grid(row=2, column=0, columnspan=2, pady=(20, 20)) 
 
 
-    def atualizar_label(valor, label_valor):
-        label_valor.config(text=valor)
+    def atualizar_label(valor, label_valor): # pra atualizar o label pra ver quantos caracteres o range pegou 
+        label_valor.config(text=valor) # label de quantos caracteres o range pegou
 
     # parte gerador de senhas
     aba_geradordesenhas = ttk.Frame(notebook)
@@ -289,7 +289,7 @@ def afterLogin(usuario):
     button_gerarsenha = tk.Button(
         aba_geradordesenhas, 
         text="Gerar Senha", 
-        command=lambda: gerar_senha(scale_caracteres.get(), text_area_gerada), 
+        command=lambda: gerar_senha(scale_caracteres.get(), text_area_gerada), # envia pra funcao os valores de scale e text area para gerar a senha e colocar no text area
         width=12, 
     )
     button_gerarsenha.grid(row=3, column=0, columnspan=2, pady=(20, 20), padx=(120,0))
@@ -308,18 +308,18 @@ def afterLogin(usuario):
     aba_logs.columnconfigure(0, weight=1)
     aba_logs.columnconfigure(1, weight=0)
     
-    global listbox_logs
-    listbox_logs = tk.Listbox(aba_logs, width=50, height=20, activestyle="none")
-    listbox_logs.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+    global listbox_logs # ele pega a listbox e salva na variavel global
+    listbox_logs = tk.Listbox(aba_logs, width=50, height=20, activestyle="none") # cria a listbox
+    listbox_logs.grid(row=0, column=0, padx=10, pady=10, sticky='nsew') # posiciona a listbox
     listbox_logs.config(state='normal')
 
     aba_logs.grid_columnconfigure(0, weight=1)
     aba_logs.grid_rowconfigure(0, weight=1)
     
 
-def salvar_logs(logs, listbox_logs):
-    log_text = f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: {logs}"
-    listbox_logs.insert(tk.END, log_text)
+def salvar_logs(logs, listbox_logs): # ele so pega a string do logs e coloca no listbox
+    log_text = f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: {logs}" # pega a data e hora e junta com o logs
+    listbox_logs.insert(tk.END, log_text) # coloca no listbox
         
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):
