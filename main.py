@@ -30,7 +30,7 @@ DBconexao = mysql.connector.connect(
 cursor = DBconexao.cursor()
 
 
-root = ttkb.Window(themename="darkly")
+root = ttkb.Window(themename="darkly") #superhero, #cosmo, #solar
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
