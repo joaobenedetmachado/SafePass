@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import ttkbootstrap as ttkb 
+from winotify import Notification, audio
 from tkinter import ttk, messagebox, filedialog
 import mysql.connector
 import utils.encrypt as enc
@@ -30,11 +31,11 @@ DBconexao = mysql.connector.connect(
 cursor = DBconexao.cursor()
 
 
-root = ttkb.Window(themename="darkly") #superhero, #cosmo, #solar
+root = ttkb.Window(themename="cosmo") #superhero, #cosmo, #solar
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
-# root.iconbitmap('./assets/logo.ico') #icone da pagina
+root.iconbitmap('./assets/logo.ico') #icone da pagina
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
@@ -177,13 +178,22 @@ def logar():
             messagebox.showerror("Login", "Nome de usuário ou senha incorretos.")
     else:
         messagebox.showwarning("Login", "Por favor, preencha todos os campos.")
-
+        
 # funcao apos o login
 def afterLogin(usuario):
+    
+    notificacao = Notification(app_id="Vaultify", title="Notificação de Entrada",
+            msg=f"Logado no sistema como {usuario.title()}",
+            duration="short")
+    
+    notificacao.set_audio(audio.Default, loop=False)
+
+    notificacao.show()
+    
     root.title(f"{usuario} | {ip.pegarIPCidade()}") # pega o nome do user o da cidade e coloca como titulo da pagina
     notebook.forget(aba_cadastro) # esquece / deleta a aba de login e cadastro
     notebook.forget(aba_login) # botao de deslogar para excluir as abas e "lembrar" de outras
-    button_deslogar = tk.Button(root, text="Deslogar", command=lambda: deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar))
+    button_deslogar = tk.Button(root, text="Deslogar", command=lambda: deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar, aba_logs))
     button_deslogar.place(x=522, y=10) # gambiarra pra ficar certinho
         
     aba_senhas = ttk.Frame(notebook) 
@@ -322,11 +332,21 @@ def salvar_logs(logs, listbox_logs): # ele so pega a string do logs e coloca no 
     listbox_logs.insert(tk.END, log_text) # coloca no listbox
         
 
-def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar):
+def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar, aba_logs):
+    
+    notificacao = Notification(app_id="Vaultify", title="Notificação de Entrada",
+        msg=f"Deslogado do sistema.",
+        duration="short")
+    
+    notificacao.set_audio(audio.Default, loop=False)
+
+    notificacao.show()
+    
     root.title("Cadastro e Login") # ele volta ao titulo, 
     notebook.forget(aba_senhas)  # delete todos os notebooks, e adiciona os normais de login e cadastro
     notebook.forget(aba_geradordesenhas) # e apaga o botao de deslogar
     notebook.forget(aba_haveibeenpwned)
+    notebook.forget(aba_logs)
     notebook.add(aba_login, text='Login')
     notebook.add(aba_cadastro, text='Cadastro')
     button_deslogar.destroy()
@@ -451,7 +471,7 @@ def ExcluirSenha(listbox_senhas, usuario):
     parts = item.split() # splita eles a partir dos espacos
     id = int(parts[1])  # pega o id
     print(id)
-    logs = " DELETE | ID: {id} | Excluído"
+    logs = f" DELETE | ID: {id} | Excluído"
     salvar_logs(logs, listbox_logs) 
     
     confirm = messagebox.askyesno("confirmar delete", f"desejas excluir a senha do ID {id}?")

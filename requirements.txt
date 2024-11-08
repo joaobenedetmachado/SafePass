@@ -2,6 +2,7 @@ ttkbootstrap
 cryptography
 requests
 datetime
+winotify
 pymysql
 bcrypt
 pandas
