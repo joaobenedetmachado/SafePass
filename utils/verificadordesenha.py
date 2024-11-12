@@ -1,7 +1,5 @@
 from zxcvbn import zxcvbn
 
-password = input("Enter your password: ")
-
 def verificarSenha(password):
     result = zxcvbn(password)
     if result['score'] == 0:
