@@ -30,7 +30,7 @@ DBconexao = mysql.connector.connect(
 cursor = DBconexao.cursor()
 
 
-root = ttkb.Window(themename="cosmo") #superhero, #cosmo, #solar
+root = ttkb.Window(themename="superhero") #superhero, #cosmo, #solar
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
@@ -260,11 +260,11 @@ def afterLogin(usuario):
     label_senha = tk.Label(aba_verificadordesenhas, text="Senha:", bg="#f0f0f0")
     label_senha.grid(row=1, column=0, pady=(45, 0), sticky='e')
 
-    entry_senha_verificar = tk.Entry(aba_verificadordesenhas, show="*", width=30)
+    entry_senha_verificar = tk.Entry(aba_verificadordesenhas, width=30)
     entry_senha_verificar.grid(row=1, column=1, pady=(45, 0), sticky='w')
 
     # Label para Resultado da Força da Senha
-    label_resultado = ttk.Label(aba_verificadordesenhas, text="", font=('Arial', 12))
+    label_resultado = ttk.Label(aba_verificadordesenhas, text="", font=('Arial', 9))
     label_resultado.grid(row=2, column=0, columnspan=2, pady=(20, 0), sticky='n')  # Centralizado
 
     # Função para verificar força da senha

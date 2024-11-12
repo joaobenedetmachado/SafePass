@@ -1,5 +1,6 @@
 ttkbootstrap
 cryptography
+translate
 requests
 datetime
 winotify
