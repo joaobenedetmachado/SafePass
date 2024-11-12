@@ -5,7 +5,7 @@ from winotify import Notification, audio
 from tkinter import ttk, messagebox, filedialog
 import mysql.connector
 import utils.encrypt as enc
-import utils.haveibeenpwned as hibp
+import utils.verificadordesenha as verif
 import utils.geradordesenha as gds    
 import utils.geolocal as ip
 import pandas as pd
@@ -193,7 +193,7 @@ def afterLogin(usuario):
     root.title(f"{usuario} | {ip.pegarIPCidade()}") # pega o nome do user o da cidade e coloca como titulo da pagina
     notebook.forget(aba_cadastro) # esquece / deleta a aba de login e cadastro
     notebook.forget(aba_login) # botao de deslogar para excluir as abas e "lembrar" de outras
-    button_deslogar = tk.Button(root, text="Deslogar", command=lambda: deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar, aba_logs))
+    button_deslogar = tk.Button(root, text="Deslogar", command=lambda: deslogar(aba_senhas, aba_geradordesenhas, aba_verificadordesenhas, aba_login, aba_cadastro, button_deslogar, aba_logs))
     button_deslogar.place(x=522, y=10) # gambiarra pra ficar certinho
         
     aba_senhas = ttk.Frame(notebook) 
@@ -242,28 +242,42 @@ def afterLogin(usuario):
 
     aba_senhas.grid_columnconfigure(0, weight=1)
     aba_senhas.grid_rowconfigure(0, weight=1)
-
     
-    # parte pra area do haveibeenpwned
-    aba_haveibeenpwned = ttk.Frame(notebook) 
-    notebook.add(aba_haveibeenpwned, text='Have I Been Pwned')
+    # parte pra area do verificador de senhas
+    aba_verificadordesenhas = ttk.Frame(notebook) 
+    notebook.add(aba_verificadordesenhas, text='Have I Been Pwned')
     
-    # rows e columns p  aba_haveibeenpwned
-    aba_haveibeenpwned.grid_rowconfigure(0, weight=1) # ele cria tres colunas verticais e duas horizontais
-    aba_haveibeenpwned.grid_rowconfigure(1, weight=3)
-    aba_haveibeenpwned.grid_rowconfigure(2, weight=3)
+    # rows e columns p  aba_verificadordesenhas
+    aba_verificadordesenhas.grid_rowconfigure(0, weight=1) # ele cria tres colunas verticais e duas horizontais
+    aba_verificadordesenhas.grid_rowconfigure(1, weight=3)
+    aba_verificadordesenhas.grid_rowconfigure(2, weight=3)
 
-    aba_haveibeenpwned.grid_columnconfigure(0, weight=2)
-    aba_haveibeenpwned.grid_columnconfigure(1, weight=2)
+    aba_verificadordesenhas.grid_columnconfigure(0, weight=2)
+    aba_verificadordesenhas.grid_columnconfigure(1, weight=2)
 
-    label_senha = tk.Label(aba_haveibeenpwned, text="Senha:", bg="#f0f0f0")
+    label_senha = tk.Label(aba_verificadordesenhas, text="Senha:", bg="#f0f0f0")
     label_senha.grid(row=1, column=0, pady=(45, 0), sticky='e')  
 
-    entry_senhahaveibeenpwned = tk.Entry(aba_haveibeenpwned, show="*", width=30)
-    entry_senhahaveibeenpwned.grid(row=1, column=1, pady=(45, 0), sticky='w')  
+    entry_senha_verificar = tk.Entry(aba_verificadordesenhas, show="*", width=30)
+    entry_senha_verificar.grid(row=1, column=1, pady=(45, 0), sticky='w')  
 
-    button_haveibeenpwned = tk.Button(aba_haveibeenpwned, text="Checar se senha já foi vazada", command=lambda: hibp.haveibeenpwned(entry_senhahaveibeenpwned.get()), width=25, bg="#4CAF50", fg="white", font=('Arial', 12))
-    button_haveibeenpwned.grid(row=2, column=0, columnspan=2, pady=(20, 20)) 
+    button_verificadordesenhas = tk.Button(
+    aba_verificadordesenhas,
+    text="Checar força da senha",
+    command=checar_forca_senha,
+    width=25,
+    bg="#4CAF50",
+    fg="white",
+    font=('Arial', 12)
+)
+    
+    button_verificadordesenhas.grid(row=2, column=0, columnspan=2, pady=(20, 20))
+    label_resultado = ttk.Label(aba_verificadordesenhas, text="", font=('Arial', 12), bootstyle="info")
+    label_resultado.grid(row=3, column=0, pady=(10, 10))
+
+    def checar_forca_senha(): # verifica a força da senha, e muda o text da label para o resultado
+        resultado = verif.verificarSenha(entry_senha_verificar.get())
+        label_resultado.config(text=resultado)  # resultado é o que a função verificarSenha retorna (irá retornar se é fraco, forte etc)
 
 
     def atualizar_label(valor, label_valor): # pra atualizar o label pra ver quantos caracteres o range pegou 
@@ -332,7 +346,7 @@ def salvar_logs(logs, listbox_logs): # ele so pega a string do logs e coloca no 
     listbox_logs.insert(tk.END, log_text) # coloca no listbox
         
 
-def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba_cadastro, button_deslogar, aba_logs):
+def deslogar(aba_senhas, aba_geradordesenhas, aba_verificadordesenhas, aba_login, aba_cadastro, button_deslogar, aba_logs):
     
     notificacao = Notification(app_id="Vaultify", title="Notificação de Entrada",
         msg=f"Deslogado do sistema.",
@@ -345,7 +359,7 @@ def deslogar(aba_senhas, aba_geradordesenhas, aba_haveibeenpwned, aba_login, aba
     root.title("Cadastro e Login") # ele volta ao titulo, 
     notebook.forget(aba_senhas)  # delete todos os notebooks, e adiciona os normais de login e cadastro
     notebook.forget(aba_geradordesenhas) # e apaga o botao de deslogar
-    notebook.forget(aba_haveibeenpwned)
+    notebook.forget(aba_verificadordesenhas)
     notebook.forget(aba_logs)
     notebook.add(aba_login, text='Login')
     notebook.add(aba_cadastro, text='Cadastro')
