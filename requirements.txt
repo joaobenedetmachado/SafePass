@@ -4,6 +4,7 @@ requests
 datetime
 winotify
 pymysql
+zxcvbn
 bcrypt
 pandas
 numpy

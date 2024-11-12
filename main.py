@@ -4,8 +4,8 @@ import ttkbootstrap as ttkb
 from winotify import Notification, audio
 from tkinter import ttk, messagebox, filedialog
 import mysql.connector
-import utils.encrypt as enc
 import utils.verificadordesenha as verif
+import utils.encrypt as enc
 import utils.geradordesenha as gds    
 import utils.geolocal as ip
 import pandas as pd
@@ -17,15 +17,14 @@ import os
 
 DB_HOST = "127.0.0.1"
 DB_USER = "root"
-DB_PASSWORD = "123123123"
+DB_PASSWORD = ""
 DB_DATABASE = "vaultify"
 
 DBconexao = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
     password=DB_PASSWORD,
-    database=DB_DATABASE,
-    port=3307
+    database=DB_DATABASE
 )
 
 cursor = DBconexao.cursor()
@@ -35,7 +34,7 @@ root = ttkb.Window(themename="cosmo") #superhero, #cosmo, #solar
 root.title("Cadastro e Login")
 root.geometry("600x400")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
-root.iconbitmap('./assets/logo.ico') #icone da pagina
+# root.iconbitmap('./assets/logo.ico') #icone da pagina
 
 style = ttk.Style()
 style.configure("TNotebook", borderwidth=5)
@@ -242,42 +241,49 @@ def afterLogin(usuario):
 
     aba_senhas.grid_columnconfigure(0, weight=1)
     aba_senhas.grid_rowconfigure(0, weight=1)
+
     
-    # parte pra area do verificador de senhas
-    aba_verificadordesenhas = ttk.Frame(notebook) 
-    notebook.add(aba_verificadordesenhas, text='Have I Been Pwned')
-    
-    # rows e columns p  aba_verificadordesenhas
-    aba_verificadordesenhas.grid_rowconfigure(0, weight=1) # ele cria tres colunas verticais e duas horizontais
+    # parte pra area do verificadordesenhas
+    aba_verificadordesenhas = ttk.Frame(notebook)
+    notebook.add(aba_verificadordesenhas, text='Verificar Força da Senha')
+
+    # Configuração de rows e columns para aba_verificadordesenhas
+    aba_verificadordesenhas.grid_rowconfigure(0, weight=1)
     aba_verificadordesenhas.grid_rowconfigure(1, weight=3)
     aba_verificadordesenhas.grid_rowconfigure(2, weight=3)
+    aba_verificadordesenhas.grid_rowconfigure(3, weight=3)
 
     aba_verificadordesenhas.grid_columnconfigure(0, weight=2)
     aba_verificadordesenhas.grid_columnconfigure(1, weight=2)
 
+    # Label e Entry para Senha
     label_senha = tk.Label(aba_verificadordesenhas, text="Senha:", bg="#f0f0f0")
-    label_senha.grid(row=1, column=0, pady=(45, 0), sticky='e')  
+    label_senha.grid(row=1, column=0, pady=(45, 0), sticky='e')
 
     entry_senha_verificar = tk.Entry(aba_verificadordesenhas, show="*", width=30)
-    entry_senha_verificar.grid(row=1, column=1, pady=(45, 0), sticky='w')  
+    entry_senha_verificar.grid(row=1, column=1, pady=(45, 0), sticky='w')
 
+    # Label para Resultado da Força da Senha
+    label_resultado = ttk.Label(aba_verificadordesenhas, text="", font=('Arial', 12))
+    label_resultado.grid(row=2, column=0, columnspan=2, pady=(20, 0), sticky='n')  # Centralizado
+
+    # Função para verificar força da senha
+    def checar_forca_senha():
+        if (entry_senha_verificar.get()) == '':
+            label_resultado.config(text='Nenhuma senha inserida')
+        else:
+            resultado = verif.verificarSenha(entry_senha_verificar.get())
+            label_resultado.config(text=resultado)
+
+    # Botão para Checar Força da Senha
     button_verificadordesenhas = tk.Button(
-    aba_verificadordesenhas,
-    text="Checar força da senha",
-    command=checar_forca_senha,
-    width=25,
-    bg="#4CAF50",
-    fg="white",
-    font=('Arial', 12)
-)
-    
-    button_verificadordesenhas.grid(row=2, column=0, columnspan=2, pady=(20, 20))
-    label_resultado = ttk.Label(aba_verificadordesenhas, text="", font=('Arial', 12), bootstyle="info")
-    label_resultado.grid(row=3, column=0, pady=(10, 10))
-
-    def checar_forca_senha(): # verifica a força da senha, e muda o text da label para o resultado
-        resultado = verif.verificarSenha(entry_senha_verificar.get())
-        label_resultado.config(text=resultado)  # resultado é o que a função verificarSenha retorna (irá retornar se é fraco, forte etc)
+        aba_verificadordesenhas,
+        text="Checar força da senha",
+        command=checar_forca_senha,
+        width=25,
+        font=('Arial', 12)
+    )
+    button_verificadordesenhas.grid(row=3, column=0, columnspan=2, pady=(10, 100))
 
 
     def atualizar_label(valor, label_valor): # pra atualizar o label pra ver quantos caracteres o range pegou 
