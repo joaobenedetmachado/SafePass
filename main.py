@@ -180,7 +180,11 @@ def logar():
         
 # funcao apos o login
 def afterLogin(usuario):
-    
+    entry_usuario_cadastro.delete(0, tk.END) # apaga as linhas dos entrys
+    entry_senha_cadastro.delete(0, tk.END)
+    entry_usuario_login.delete(0, tk.END)
+    entry_senha_login.delete(0, tk.END)
+
     notificacao = Notification(app_id="Vaultify", title="Notificação de Entrada",
             msg=f"Logado no sistema como {usuario.title()}",
             duration="short")
@@ -536,7 +540,6 @@ aba_cadastro.columnconfigure(1, weight=2)
 
 aba_login.columnconfigure(0, weight=2)
 aba_login.columnconfigure(1, weight=2)
-
 
 #cadstro
 label_usuario_cadastro = tk.Label(aba_cadastro, text="Usuário:")
