@@ -1,4 +1,3 @@
-
 CREATE TABLE passwords (
   idpassword int(11) NOT NULL AUTO_INCREMENT,
   userid int(11) NOT NULL,
