@@ -13,26 +13,46 @@ import webbrowser
 import datetime
 import csv
 import os
+import sqlite3
 
+# Configuração do banco de dados SQLite
+DB_DATABASE = "vaultify.db"
 
-DB_HOST = "127.0.0.1"
-DB_USER = "root"
-DB_PASSWORD = ""
-DB_DATABASE = "vaultify"
-
-DBconexao = mysql.connector.connect(
-    host=DB_HOST,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    database=DB_DATABASE
-)
+# Conexão com o SQLite
+DBconexao = sqlite3.connect(DB_DATABASE)
 
 cursor = DBconexao.cursor()
+
+# Criação da tabela `users`
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS users (
+    idusers INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT DEFAULT NULL,
+    password TEXT DEFAULT NULL
+)
+''')
+
+# Criação da tabela `passwords`
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS passwords (
+    idpassword INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid INTEGER NOT NULL,
+    passwordhash TEXT NOT NULL,
+    sitename TEXT NOT NULL,
+    FOREIGN KEY (userid) REFERENCES users (idusers)
+)
+''')
+
+# Salvando as alterações
+DBconexao.commit()
+
+# Fechando a conexão
+DBconexao.close()
 
 
 root = ttkb.Window(themename="superhero") #superhero, #cosmo, #solar
 root.title("Cadastro e Login")
-root.geometry("600x400")
+root.geometry("700x500")
 root.resizable(False, False) # pra nao poder mudar o tamanho da janela
 # root.iconbitmap('./assets/logo.ico') #icone da pagina
 
@@ -184,14 +204,6 @@ def afterLogin(usuario):
     entry_senha_cadastro.delete(0, tk.END)
     entry_usuario_login.delete(0, tk.END)
     entry_senha_login.delete(0, tk.END)
-
-    notificacao = Notification(app_id="Vaultify", title="Notificação de Entrada",
-            msg=f"Logado no sistema como {usuario.title()}",
-            duration="short")
-    
-    notificacao.set_audio(audio.Default, loop=False)
-
-    notificacao.show()
     
     root.title(f"{usuario} | {ip.pegarIPCidade()}") # pega o nome do user o da cidade e coloca como titulo da pagina
     notebook.forget(aba_cadastro) # esquece / deleta a aba de login e cadastro
@@ -357,15 +369,7 @@ def salvar_logs(logs, listbox_logs): # ele so pega a string do logs e coloca no 
         
 
 def deslogar(aba_senhas, aba_geradordesenhas, aba_verificadordesenhas, aba_login, aba_cadastro, button_deslogar, aba_logs):
-    
-    notificacao = Notification(app_id="Vaultify", title="Notificação de Entrada",
-        msg=f"Deslogado do sistema.",
-        duration="short")
-    
-    notificacao.set_audio(audio.Default, loop=False)
-
-    notificacao.show()
-    
+        
     root.title("Cadastro e Login") # ele volta ao titulo, 
     notebook.forget(aba_senhas)  # delete todos os notebooks, e adiciona os normais de login e cadastro
     notebook.forget(aba_geradordesenhas) # e apaga o botao de deslogar
