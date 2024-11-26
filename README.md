@@ -1,3 +1,5 @@
+# <a href="https://www.canva.com/design/DAGWSluSTh4/42Udcw-G5NoQV3wSjl-jvA/edit?utm_content=DAGWSluSTh4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton">LINK DO CANVA </a>
+
 # 🚀 Vaultify
 
 **Vaultify** é um gerenciador de senhas seguro e intuitivo, desenvolvido em Python. Ele oferece uma interface gráfica amigável e utiliza um banco de dados para armazenar informações de login, garantindo que suas senhas sejam mantidas em segurança através de hashing.
